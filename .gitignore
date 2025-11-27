@@ -81,3 +81,7 @@ jspm_packages/
 # Temporary folders
 tmp/
 temp/
+
+# Sensitive migration files
+supabase/migrations/*test_accounts*
+supabase/migrations/*003_create_test_accounts*
