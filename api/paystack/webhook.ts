@@ -8,6 +8,12 @@ const supabase = createClient(
 );
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  console.log('🔔 Webhook received:', {
+    method: req.method,
+    headers: Object.keys(req.headers),
+    hasSignature: !!req.headers['x-paystack-signature']
+  });
+
   if (req.method !== 'POST') {
     return res.status(405).json({ message: 'Method Not Allowed' });
   }
@@ -15,6 +21,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const body = JSON.stringify(req.body);
     const signature = req.headers['x-paystack-signature'] as string;
+    
+    console.log('📦 Webhook payload:', {
+      event: req.body?.event,
+      reference: req.body?.data?.reference,
+      amount: req.body?.data?.amount,
+      userId: req.body?.data?.metadata?.user_id
+    });
     
     // Verify webhook signature
     const hash = crypto
@@ -82,9 +95,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         })
         .eq('user_id', userId);
       
-      console.log(`Payment verified for user ${userId}: ${reference}`);
+      console.log(`✅ Payment verified for user ${userId}: ${reference}`);
     }
     
+    console.log('✅ Webhook processed successfully');
     return res.status(200).json({ message: 'OK' });
     
   } catch (error) {
