@@ -117,9 +117,9 @@ export function VerifyPaymentPage() {
 
   return (
     <DashboardLayout>
-      <div className="p-6">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Verify Your Account</h1>
+      <div className="p-4 lg:p-6">
+        <div className="mb-6 lg:mb-8">
+          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Verify Your Account</h1>
           <p className="text-gray-600">Mark human verification complete to continue</p>
         </div>
         
@@ -134,9 +134,9 @@ export function VerifyPaymentPage() {
             <p className="text-gray-600 mb-6">Your account has been verified. Redirecting to assessment...</p>
           </div>
         ) : (
-          <div className="grid grid-cols-5 gap-8 max-w-6xl">
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-8 max-w-6xl">
             {/* Left Card - 60% */}
-            <div className="col-span-3 bg-white rounded-xl border border-gray-200 p-8">
+            <div className="lg:col-span-3 bg-white rounded-xl border border-gray-200 p-6 lg:p-8">
               <div className="space-y-6">
                 <div>
                   <h2 className="text-2xl font-bold text-[#000150] mb-4">Bypass the Anti-Bot Check</h2>
@@ -167,7 +167,7 @@ export function VerifyPaymentPage() {
             </div>
 
             {/* Right Card - 40% */}
-            <div className={`col-span-2 bg-white rounded-xl border p-8 transition-all duration-300 ${
+            <div className={`lg:col-span-2 bg-white rounded-xl border p-6 lg:p-8 transition-all duration-300 ${
               status === 'loading' || status === 'payment_form' 
                 ? 'border-[#000150] shadow-lg shadow-[#000150]/20' 
                 : 'border-gray-200'

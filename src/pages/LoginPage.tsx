@@ -5,7 +5,7 @@ import { Logo } from '../components/Logo';
 import homeImg from '../assets/home.png';
 
 export function LoginPage() {
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState('@gmail.com');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -18,7 +18,8 @@ export function LoginPage() {
     setLoading(true);
 
     try {
-      await signIn(email, password);
+      const fullEmail = email.endsWith('@gmail.com') ? email : email + '@gmail.com';
+      await signIn(fullEmail, password);
       console.log('Sign in completed');
       // Small delay to ensure auth state is updated
       setTimeout(() => {
@@ -57,17 +58,25 @@ export function LoginPage() {
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-900 mb-2">
-              Email
+              Gmail
             </label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              required
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition"
-            />
+            <div className="relative">
+              <input
+                id="email"
+                type="text"
+                value={email.replace('@gmail.com', '')}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/@/g, '');
+                  setEmail(value + '@gmail.com');
+                }}
+                placeholder="username"
+                required
+                className="w-full px-4 py-2.5 pr-24 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition"
+              />
+              <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
+                <span className="text-gray-500">@gmail.com</span>
+              </div>
+            </div>
           </div>
 
           <div>
