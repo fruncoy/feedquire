@@ -21,7 +21,7 @@ export function SubmissionsPage() {
       const { data: submissionData, error: submissionError } = await supabase
         .from('feedback_submissions')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', user!.id)
         .eq('status', 'submitted')
         .order('created_at', { ascending: false });
 

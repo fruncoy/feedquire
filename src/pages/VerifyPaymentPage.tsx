@@ -57,6 +57,8 @@ export function VerifyPaymentPage() {
   };
 
   const updateUserStatus = async (reference: string) => {
+    if (!user) return;
+    
     try {
       // Update profile status
       const { error: profileError } = await supabase

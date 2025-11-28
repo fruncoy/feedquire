@@ -1,4 +1,4 @@
-export type UserRole = 'user' | 'admin';
+export type UserRole = 'user' | 'system_operator';
 
 export interface User {
   id: string;
@@ -24,7 +24,7 @@ export interface Profile {
 
 
 
-export type AccountStatus = 'tier1' | 'tier2' | 'tier3' | 'rejected' | 'banned';
+export type AccountStatus = 'a7F9xQ2mP6kM4rT5' | '1Q3bF8vL1nT9pB6wR' | 'tier3' | 'rejected' | 'banned';
 
 export interface AIPlatform {
   id: string;
