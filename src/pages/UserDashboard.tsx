@@ -126,7 +126,17 @@ export function UserDashboard() {
               </button>
 
               <button
-                onClick={() => navigate('/assessment-test')}
+                onClick={() => {
+                  // Check if user has submitted assessment
+                  const assessmentPlatform = Object.values(platforms).find(p => p.is_assessment);
+                  const hasSubmittedAssessment = assessmentPlatform && submissions[assessmentPlatform.id];
+                  
+                  if (hasSubmittedAssessment) {
+                    navigate('/awaiting-approval');
+                  } else if (features.assessment) {
+                    navigate('/assessment-test');
+                  }
+                }}
                 className={`w-full bg-white rounded-lg p-6 transition text-left ${
                   !features.assessment ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-md'
                 }`}
@@ -140,8 +150,19 @@ export function UserDashboard() {
                     <p className={`text-sm ${
                       !features.assessment ? 'text-gray-500' : 'text-gray-600'
                     }`}>
-                      Pass test to craft experiences that win hearts and markets
-                      {!features.assessment && ' (Available after human verification)'}
+                      {(() => {
+                        const assessmentPlatform = Object.values(platforms).find(p => p.is_assessment);
+                        const hasSubmittedAssessment = assessmentPlatform && submissions[assessmentPlatform.id];
+                        
+                        if (!features.assessment) {
+                          return 'Pass test to craft experiences that win hearts and markets (Available after human verification)';
+                        } else if (hasSubmittedAssessment) {
+                          return 'Assessment submitted - awaiting approval';
+                        } else {
+                          return 'Pass test to craft experiences that win hearts and markets';
+                        }
+                      })()
+                    }
                     </p>
                   </div>
                   <div className="flex flex-col items-end gap-3">
@@ -150,13 +171,40 @@ export function UserDashboard() {
                         <Lock size={16} className="text-gray-500" />
                       ) : (
                         <div className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${
-                          !features.proFeatures ? 'bg-orange-50 text-orange-700' :
-                          'bg-green-50 text-green-700'
+                          (() => {
+                            const assessmentPlatform = Object.values(platforms).find(p => p.is_assessment);
+                            const hasSubmittedAssessment = assessmentPlatform && submissions[assessmentPlatform.id];
+                            
+                            if (hasSubmittedAssessment) {
+                              return 'bg-yellow-50 text-yellow-700';
+                            } else if (!features.proFeatures) {
+                              return 'bg-orange-50 text-orange-700';
+                            } else {
+                              return 'bg-green-50 text-green-700';
+                            }
+                          })()
                         }`}>
-                          {!features.proFeatures ? 'Pending' : 'Completed'}
+                          {(() => {
+                            const assessmentPlatform = Object.values(platforms).find(p => p.is_assessment);
+                            const hasSubmittedAssessment = assessmentPlatform && submissions[assessmentPlatform.id];
+                            
+                            if (hasSubmittedAssessment) {
+                              return 'Awaiting Approval';
+                            } else if (!features.proFeatures) {
+                              return 'Pending';
+                            } else {
+                              return 'Completed';
+                            }
+                          })()
+                        }
                         </div>
                       )}
-                      {!features.proFeatures && features.assessment && (
+                      {(() => {
+                        const assessmentPlatform = Object.values(platforms).find(p => p.is_assessment);
+                        const hasSubmittedAssessment = assessmentPlatform && submissions[assessmentPlatform.id];
+                        
+                        return (features.assessment && !features.proFeatures && !hasSubmittedAssessment) || hasSubmittedAssessment;
+                      })() && (
                         <ChevronRight size={24} className="text-gray-400" />
                       )}
                     </div>
@@ -183,28 +231,28 @@ export function UserDashboard() {
           </div>
         ) : null}
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-          <div className="bg-gray-50 rounded-lg border border-gray-200 p-6">
-            <p className="text-sm text-gray-600 font-medium mb-2">Total Earned</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 mb-8 lg:mb-12">
+          <div className="bg-gray-50 rounded-lg border border-gray-200 p-4 lg:p-6">
+            <p className="text-xs lg:text-sm text-gray-600 font-medium mb-2">Total Earned</p>
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-semibold text-gray-900">${totalEarned.toFixed(2)}</span>
-              <span className="text-gray-600 text-sm">USD</span>
+              <span className="text-2xl lg:text-3xl font-semibold text-gray-900">${totalEarned.toFixed(2)}</span>
+              <span className="text-gray-600 text-xs lg:text-sm">USD</span>
             </div>
           </div>
 
-          <div className="bg-gray-50 rounded-lg border border-gray-200 p-6">
-            <p className="text-sm text-gray-600 font-medium mb-2">Pending Earnings</p>
+          <div className="bg-gray-50 rounded-lg border border-gray-200 p-4 lg:p-6">
+            <p className="text-xs lg:text-sm text-gray-600 font-medium mb-2">Pending Earnings</p>
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-semibold text-gray-900">${pendingEarnings.toFixed(2)}</span>
-              <span className="text-gray-600 text-sm">potential</span>
+              <span className="text-2xl lg:text-3xl font-semibold text-gray-900">${pendingEarnings.toFixed(2)}</span>
+              <span className="text-gray-600 text-xs lg:text-sm">potential</span>
             </div>
           </div>
 
-          <div className="bg-gray-50 rounded-lg border border-gray-200 p-6">
-            <p className="text-sm text-gray-600 font-medium mb-2">Tasks Available</p>
+          <div className="bg-gray-50 rounded-lg border border-gray-200 p-4 lg:p-6">
+            <p className="text-xs lg:text-sm text-gray-600 font-medium mb-2">Tasks Available</p>
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-semibold text-gray-900">{activePlatforms.length}</span>
-              <span className="text-gray-600 text-sm">platforms</span>
+              <span className="text-2xl lg:text-3xl font-semibold text-gray-900">{activePlatforms.length}</span>
+              <span className="text-gray-600 text-xs lg:text-sm">platforms</span>
             </div>
           </div>
 

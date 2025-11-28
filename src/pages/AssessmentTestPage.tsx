@@ -60,7 +60,15 @@ export function AssessmentTestPage() {
     }));
   };
 
-  const isSectionComplete = currentSection && currentSection.questions.every(q => responses[q.id]);
+  const isSectionComplete = currentSection && (() => {
+    if (isLastSection) {
+      // For last section, only require the last question
+      const lastQuestion = currentSection.questions[currentSection.questions.length - 1];
+      return responses[lastQuestion?.id]?.trim();
+    }
+    // For other sections, no questions are required
+    return true;
+  })();
 
   const handleNext = () => {
     if (isSectionComplete && currentSectionIndex < totalSections - 1) {
@@ -88,11 +96,14 @@ export function AssessmentTestPage() {
 
       const { data: submission, error: submissionError } = await supabase
         .from('feedback_submissions')
-        .insert({
+        .upsert({
           user_id: user.id,
           platform_id: platformData?.id,
           status: 'submitted',
           completion_percentage: 100,
+          submitted_at: new Date().toISOString(),
+        }, {
+          onConflict: 'user_id,platform_id'
         })
         .select()
         .maybeSingle();
@@ -100,22 +111,34 @@ export function AssessmentTestPage() {
       if (submissionError) throw submissionError;
       if (!submission) throw new Error('Failed to create submission');
 
-      const responsesToInsert = Object.entries(responses).map(([questionId, response]) => ({
-        submission_id: submission.id,
-        question_id: questionId,
-        response_text: response,
-      }));
-
-      const { error: responsesError } = await supabase
-        .from('submission_responses')
-        .insert(responsesToInsert);
-
-      if (responsesError) throw responsesError;
+      // Only save the last question's response
+      const allQuestions = Object.values(sections).flatMap(section => section.questions);
+      const lastQuestion = allQuestions[allQuestions.length - 1];
+      const lastResponse = responses[lastQuestion?.id];
+      
+      if (lastResponse?.trim()) {
+        // Delete existing responses for this submission
+        await supabase
+          .from('submission_responses')
+          .delete()
+          .eq('submission_id', submission.id);
+        
+        // Insert new response
+        const { error: responsesError } = await supabase
+          .from('submission_responses')
+          .insert({
+            submission_id: submission.id,
+            question_id: lastQuestion.id,
+            response_text: lastResponse,
+          });
+        
+        if (responsesError) throw responsesError;
+      }
 
       const { error: assessmentError } = await supabase
         .from('logs')
         .update({
-          status: 'test_completed',
+          status: 'pending_review',
           test_completed_at: new Date().toISOString(),
           test_score: 100,
         })
@@ -126,7 +149,6 @@ export function AssessmentTestPage() {
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
-          verification_status: 'awaiting_approval',
           test_score: 100,
         })
         .eq('user_id', user.id);
@@ -182,16 +204,11 @@ export function AssessmentTestPage() {
 
   return (
     <DashboardLayout>
-      <div className="bg-white border-b border-gray-200 rounded-br-lg">
-        <div className="px-6 py-6 h-20 flex flex-col justify-center">
-          <h1 className="text-2xl font-semibold text-gray-900">
-            {showInstructions ? 'Assessment Instructions' : 'Assessment Test'}
-          </h1>
-        </div>
-      </div>
-
       <div className="p-6">
         <div className="max-w-3xl mx-auto">
+          <h1 className="text-2xl font-semibold text-gray-900 mb-6">
+            {showInstructions ? 'Assessment Instructions' : 'Assessment Test'}
+          </h1>
           {showInstructions ? (
             <div>
               <div className="space-y-4 mb-8">
@@ -260,20 +277,63 @@ export function AssessmentTestPage() {
                 </div>
 
                 <div className="space-y-8">
-                  {currentSection.questions.map((question) => (
-                    <div key={question.id}>
-                      <label className="block text-sm font-medium text-gray-900 mb-3">
-                        {question.question_text}
-                      </label>
-                      <textarea
-                        value={responses[question.id] || ''}
-                        onChange={(e) => handleResponseChange(question.id, e.target.value)}
-                        placeholder="Share your detailed feedback..."
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition resize-none"
-                        rows={4}
-                      />
-                    </div>
-                  ))}
+                  {currentSection.questions.map((question, index) => {
+                    const response = responses[question.id] || '';
+                    const wordCount = response.trim().split(/\s+/).filter(word => word.length > 0).length;
+                    const isLastQuestion = index === currentSection.questions.length - 1;
+                    
+                    return (
+                      <div key={question.id}>
+                        <label className="block text-sm font-medium text-gray-900 mb-3">
+                          {question.question_text}
+                        </label>
+                        <textarea
+                          value={response}
+                          onChange={(e) => {
+                            const words = e.target.value.trim().split(/\s+/).filter(word => word.length > 0);
+                            if (words.length <= 50) {
+                              handleResponseChange(question.id, e.target.value);
+                            }
+                          }}
+                          onPaste={(e) => {
+                            e.preventDefault();
+                            alert('Copy-pasting is not allowed. Please type your own response.');
+                            return false;
+                          }}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            alert('Drag and drop is not allowed. Please type your own response.');
+                            return false;
+                          }}
+                          onContextMenu={(e) => {
+                            e.preventDefault();
+                            return false;
+                          }}
+                          onKeyDown={(e) => {
+                            // Block Ctrl+V, Ctrl+Shift+V, and other paste shortcuts
+                            if ((e.ctrlKey || e.metaKey) && (e.key === 'v' || e.key === 'V')) {
+                              e.preventDefault();
+                              alert('Copy-pasting is not allowed. Please type your own response.');
+                              return false;
+                            }
+                          }}
+                          placeholder="Type your own response... (max 50 words)"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition resize-none"
+                          rows={4}
+                          autoComplete="off"
+                          spellCheck="false"
+                        />
+                        <div className="flex justify-between items-center mt-2">
+                          <span className="text-xs text-gray-500">No copy-pasting allowed</span>
+                          <span className={`text-xs ${
+                            wordCount > 50 ? 'text-red-500' : wordCount > 40 ? 'text-yellow-500' : 'text-gray-500'
+                          }`}>
+                            {wordCount}/50 words
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
