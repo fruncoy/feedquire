@@ -4,12 +4,12 @@ export default {
   theme: {
     extend: {
       width: {
-        '15': '60px',
+        '15': '60px'
       },
       margin: {
-        '15': '60px',
-      },
+        '15': '60px'
+      }
     },
   },
   plugins: [],
-};
+}

@@ -1,16 +1,10 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-
-export function LandingPage() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  const toggleMobileMenu = () => {
-    setMobileMenuOpen(!mobileMenuOpen);
-  };
-
-  return (
-    <div>
-      <style>{`
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feedquire - Test AI. Give Feedback. Earn Up to $14 a Task</title>
+    <style>
         * {
             margin: 0;
             padding: 0;
@@ -18,6 +12,12 @@ export function LandingPage() {
         }
 
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@800;900&display=swap');
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            overflow-x: hidden;
+            background: #ffffff;
+        }
 
         .header {
             position: fixed;
@@ -134,6 +134,10 @@ export function LandingPage() {
             color: #6366f1;
         }
 
+        .btn-header {
+            display: none;
+        }
+
         .hero {
             position: relative;
             min-height: 100vh;
@@ -210,8 +214,6 @@ export function LandingPage() {
             transition: all 0.3s ease;
             box-shadow: 0 10px 40px rgba(0, 1, 80, 0.2);
             white-space: nowrap;
-            text-decoration: none;
-            display: inline-block;
         }
 
         .btn-cta:hover {
@@ -230,7 +232,6 @@ export function LandingPage() {
             cursor: pointer;
             transition: all 0.3s ease;
             white-space: nowrap;
-            text-decoration: none;
         }
 
         .btn-secondary:hover {
@@ -286,52 +287,70 @@ export function LandingPage() {
                 font-size: 0.95rem;
             }
         }
-      `}</style>
-
-      <header className="header">
-        <div className="logo">feedquire</div>
-        <div className="nav-container">
-          <a href="#" className="nav-link">How It Works</a>
-          <a href="#" className="nav-link">Why Us</a>
-          <a href="#" className="nav-link">Pricing</a>
-          <a href="#" className="nav-link">FAQs</a>
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="logo">feedquire</div>
+        <div class="nav-container">
+            <a href="#" class="nav-link">How It Works</a>
+            <a href="#" class="nav-link">Why Us</a>
+            <a href="#" class="nav-link">Pricing</a>
+            <a href="#" class="nav-link">FAQs</a>
         </div>
-        <button 
-          className={`mobile-menu-btn ${mobileMenuOpen ? 'active' : ''}`} 
-          onClick={toggleMobileMenu}
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <rect x="3" y="3" width="7" height="7" rx="1"></rect>
-            <rect x="14" y="3" width="7" height="7" rx="1"></rect>
-            <rect x="14" y="14" width="7" height="7" rx="1"></rect>
-            <rect x="3" y="14" width="7" height="7" rx="1"></rect>
-          </svg>
+        <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+                <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+                <rect x="14" y="14" width="7" height="7" rx="1"></rect>
+                <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+            </svg>
         </button>
-      </header>
+    </header>
 
-      <div className={`mobile-menu ${mobileMenuOpen ? 'active' : ''}`}>
+    <div class="mobile-menu" id="mobileMenu">
         <a href="#">How It Works</a>
         <a href="#">Why Us</a>
         <a href="#">Pricing</a>
         <a href="#">FAQs</a>
-      </div>
-
-      <section className="hero">
-        <div className="hero-content">
-          <h1>
-            <span className="regular-text">Test AI.</span> <span className="italic-text">Give Feedback.</span> <span className="gradient-text regular-text">Earn Up to $14 Per Task.</span>
-          </h1>
-          
-          <p className="subtitle">
-            Power smarter decisions. Tell users if the platform is reliable, show investors if the product is worth backing, and give developers a clear roadmap for improvements.
-          </p>
-
-          <div className="cta-container">
-            <Link to="/signup" className="btn-cta">Start Earning</Link>
-            <a href="#" className="btn-secondary">How It Works</a>
-          </div>
-        </div>
-      </section>
     </div>
-  );
-}
+
+    <section class="hero">
+        <div class="hero-content">
+            <h1>
+                <span class="regular-text">Test AI.</span> <span class="italic-text">Give Feedback.</span> <span class="gradient-text regular-text">Earn Up to $14 Per Task.</span>
+            </h1>
+            
+            <p class="subtitle">
+                Power smarter decisions. Tell users if the platform is reliable, show investors if the product is worth backing, and give developers a clear roadmap for improvements.
+            </p>
+
+            <div class="cta-container">
+                <button class="btn-cta">Start Earning</button>
+                <button class="btn-secondary">How It Works</button>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobileMenu');
+            const menuBtn = document.querySelector('.mobile-menu-btn');
+            
+            menu.classList.toggle('active');
+            menuBtn.classList.toggle('active');
+        }
+
+        // Close menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const menu = document.getElementById('mobileMenu');
+            const menuBtn = document.querySelector('.mobile-menu-btn');
+            
+            if (!menu.contains(event.target) && !menuBtn.contains(event.target)) {
+                menu.classList.remove('active');
+                menuBtn.classList.remove('active');
+            }
+        });
+    </script>
+</body>
+</html>

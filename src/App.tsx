@@ -25,6 +25,7 @@ import { UserProfilePage } from './pages/UserProfilePage';
 import { UnauthorizedPage } from './pages/UnauthorizedPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { AccountPage } from './pages/AccountPage';
+import { LandingPage } from './pages/LandingPage';
 import { SecureProtectedRoute } from './components/SecureProtectedRoute';
 
 function App() {
@@ -181,7 +182,8 @@ function App() {
           />
 
           <Route path="/unauthorized" element={<UnauthorizedPage />} />
-          <Route path="/" element={<RoleBasedRedirect />} />
+          <Route path="/home" element={<RoleBasedRedirect />} />
+          <Route path="/" element={<LandingPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </AuthProvider>
