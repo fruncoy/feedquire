@@ -190,7 +190,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         )}
       </div>
       
-      <style jsx>{`
+      <style>{`
         @keyframes loadLeft {
           from { width: 0%; }
           to { width: 100%; }

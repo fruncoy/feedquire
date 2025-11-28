@@ -251,7 +251,7 @@ export function AdminUsersPage() {
               </div>
             </div>
 
-            {(selectedUser.verification_status === 'awaiting_approval' || selectedUser.account_status === 'tier2') && (
+            {(selectedUser.verification_status === 'awaiting_approval' || selectedUser.account_status === '1Q3bF8vL1nT9pB6wR') && (
               <div className="flex gap-3">
                 <button
                   onClick={() => handleApprove(selectedUser.user_id)}
