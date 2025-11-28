@@ -1,28 +1,35 @@
--- Fix profile creation trigger to use obfuscated tier values
-
--- Drop existing trigger if it exists
+-- Completely bypass RLS for signup trigger
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+DROP FUNCTION IF EXISTS public.handle_new_user();
 
--- Recreate the function with correct tier value
+-- Create function that runs as superuser to bypass all RLS
 CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS trigger AS $$
+RETURNS trigger 
+SECURITY DEFINER
+SET search_path = public
+LANGUAGE plpgsql AS $$
 BEGIN
+  -- Disable RLS for this session
+  PERFORM set_config('row_security', 'off', true);
+  
   INSERT INTO public.profiles (user_id, full_name, role, account_status)
   VALUES (
     NEW.id,
     COALESCE(NEW.raw_user_meta_data->>'full_name', 'User'),
     'user',
-    'a7F9xQ2mP6kM4rT5'  -- tier1 obfuscated value
+    'a7F9xQ2mP6kM4rT5'
   );
   
   INSERT INTO public.user_assessments (user_id, status)
   VALUES (NEW.id, 'pending_payment');
   
+  -- Re-enable RLS
+  PERFORM set_config('row_security', 'on', true);
+  
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
--- Recreate the trigger
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();

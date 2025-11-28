@@ -1,28 +1,21 @@
--- Fix profile creation trigger to use obfuscated tier values
-
--- Drop existing trigger if it exists
-DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
-
--- Recreate the function with correct tier value
+-- Create a working trigger that doesn't conflict with manual profile creation
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger AS $$
 BEGIN
+  -- Only create profile if it doesn't exist (avoid conflicts with manual creation)
   INSERT INTO public.profiles (user_id, full_name, role, account_status)
   VALUES (
     NEW.id,
     COALESCE(NEW.raw_user_meta_data->>'full_name', 'User'),
     'user',
-    'a7F9xQ2mP6kM4rT5'  -- tier1 obfuscated value
-  );
-  
-  INSERT INTO public.user_assessments (user_id, status)
-  VALUES (NEW.id, 'pending_payment');
+    'a7F9xQ2mP6kM4rT5'
+  )
+  ON CONFLICT (user_id) DO NOTHING;
   
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Recreate the trigger
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
