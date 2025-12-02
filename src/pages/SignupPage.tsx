@@ -3,11 +3,11 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Logo } from '../components/Logo';
 import homeImg from '../assets/home.png';
-import { CheckCircle } from 'lucide-react';
+import { CheckCircle, ArrowLeft } from 'lucide-react';
 
 export function SignupPage() {
   const [name, setName] = useState('');
-  const [email, setEmail] = useState('@gmail.com');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -24,11 +24,15 @@ export function SignupPage() {
       return;
     }
 
+    if (!email.endsWith('@gmail.com')) {
+      setError('Only Gmail accounts are accepted');
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const fullEmail = email.endsWith('@gmail.com') ? email : email + '@gmail.com';
-      await signUp(name, fullEmail, password);
+      await signUp(name, email, password);
       setShowSuccess(true);
       setLoading(false);
       // Redirect after showing success
@@ -46,8 +50,12 @@ export function SignupPage() {
       <div className="hidden lg:block">
         <img src={homeImg} alt="Home" className="w-full h-full object-cover" />
       </div>
-      <div className="flex items-center justify-center px-4">
-        <div className="w-full max-w-md">
+      <div className="flex flex-col min-h-screen px-4 py-8">
+        <div className="w-full max-w-md mx-auto flex-1 flex flex-col justify-center">
+          <Link to="/" className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6 transition-colors">
+            <ArrowLeft size={20} />
+            Back to Home
+          </Link>
           <div className="flex justify-center mb-8">
             <Logo className="h-24 w-auto object-contain" />
           </div>
@@ -93,25 +101,18 @@ export function SignupPage() {
 
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-900 mb-2">
-              Gmail
+              Gmail Address
             </label>
-            <div className="relative">
-              <input
-                id="email"
-                type="text"
-                value={email.replace('@gmail.com', '')}
-                onChange={(e) => {
-                  const value = e.target.value.replace(/@/g, '');
-                  setEmail(value + '@gmail.com');
-                }}
-                placeholder="username"
-                required
-                className="w-full px-4 py-2.5 pr-24 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition"
-              />
-              <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
-                <span className="text-gray-500">@gmail.com</span>
-              </div>
-            </div>
+            <input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="your.email@gmail.com"
+              required
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition"
+            />
+            <p className="text-xs text-gray-600 mt-1">Only Gmail accounts are accepted</p>
           </div>
 
           <div>
@@ -161,7 +162,7 @@ export function SignupPage() {
           </Link>
         </p>
 
-        <p className="text-xs text-gray-500 text-center mt-8">
+        <p className="text-xs text-gray-500 text-center mt-8 mb-4">
           By signing up, you agree to our Terms of Service and acknowledge our Privacy Policy
         </p>
         </div>

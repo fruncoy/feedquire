@@ -2,10 +2,11 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Logo } from '../components/Logo';
+import { ArrowLeft } from 'lucide-react';
 import homeImg from '../assets/home.png';
 
 export function LoginPage() {
-  const [email, setEmail] = useState('@gmail.com');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -17,9 +18,14 @@ export function LoginPage() {
     setError('');
     setLoading(true);
 
+    if (!email.endsWith('@gmail.com')) {
+      setError('Only Gmail accounts are accepted');
+      setLoading(false);
+      return;
+    }
+
     try {
-      const fullEmail = email.endsWith('@gmail.com') ? email : email + '@gmail.com';
-      await signIn(fullEmail, password);
+      await signIn(email, password);
       console.log('Sign in completed');
       // Small delay to ensure auth state is updated
       setTimeout(() => {
@@ -38,8 +44,12 @@ export function LoginPage() {
       <div className="hidden lg:block">
         <img src={homeImg} alt="Home" className="w-full h-full object-cover" />
       </div>
-      <div className="flex items-center justify-center px-4">
-        <div className="w-full max-w-md">
+      <div className="flex flex-col min-h-screen px-4 py-8">
+        <div className="w-full max-w-md mx-auto flex-1 flex flex-col justify-center">
+          <Link to="/" className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6 transition-colors">
+            <ArrowLeft size={20} />
+            Back to Home
+          </Link>
           <div className="flex justify-center mb-8">
             <Logo className="h-20 w-auto object-contain" />
           </div>
@@ -58,25 +68,17 @@ export function LoginPage() {
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-900 mb-2">
-              Gmail
+              Gmail Address
             </label>
-            <div className="relative">
-              <input
-                id="email"
-                type="text"
-                value={email.replace('@gmail.com', '')}
-                onChange={(e) => {
-                  const value = e.target.value.replace(/@/g, '');
-                  setEmail(value + '@gmail.com');
-                }}
-                placeholder="username"
-                required
-                className="w-full px-4 py-2.5 pr-24 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition"
-              />
-              <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
-                <span className="text-gray-500">@gmail.com</span>
-              </div>
-            </div>
+            <input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="your.email@gmail.com"
+              required
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition"
+            />
           </div>
 
           <div>
