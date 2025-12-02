@@ -204,8 +204,7 @@ export function AdminUsersPage() {
                 <p className="text-gray-600">{selectedUser.user_id}</p>
               </div>
               <div className={`${badge.bg} ${badge.text} px-3 py-1.5 rounded-full flex items-center gap-1.5 text-sm font-medium`}>
-                {badge.icon}
-                {selectedUser.account_status}
+                {badge.label}
               </div>
             </div>
 

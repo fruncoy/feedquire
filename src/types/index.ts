@@ -16,6 +16,7 @@ export interface Profile {
   payment_status?: string;
   test_score: number;
   total_earned: number;
+  mpesa_number?: string;
   created_at: string;
   updated_at: string;
 }
