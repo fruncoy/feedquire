@@ -2,7 +2,7 @@ import { ReactNode, useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { usePermissions } from '../hooks/usePermissions';
-import { LogOut, Home, CheckSquare, FileText, User, CreditCard, Users, Package, ClipboardList, Crown } from 'lucide-react';
+import { LogOut, Home, CheckSquare, FileText, User, CreditCard, Users, Package, ClipboardList, Crown, Trash2 } from 'lucide-react';
 import { Logo } from './Logo';
 
 interface DashboardLayoutProps {
@@ -24,11 +24,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     navigate('/login');
   };
 
-  useEffect(() => {
-    setLoading(true);
-    const timer = setTimeout(() => setLoading(false), 300);
-    return () => clearTimeout(timer);
-  }, [location.pathname]);
+
 
   // Determine admin status from current route to avoid exposing role
   const isAdminRoute = location.pathname.startsWith('/control');
@@ -38,6 +34,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     { path: '/control/accounts', icon: Users, label: 'Accounts' },
     { path: '/control/systems', icon: Package, label: 'Systems' },
     { path: '/control/reports', icon: ClipboardList, label: 'Reports' },
+    { path: '/control/cleanup', icon: Trash2, label: 'Cleanup' },
   ] : [
     { path: '/dashboard', icon: Home, label: 'Dashboard' },
     { path: '/tasks', icon: CheckSquare, label: 'Tasks' },
@@ -58,12 +55,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       
       {/* Sidebar */}
       <div className={`${
-        // Mobile: collapsed (60px) or expanded (256px)
-        mobileExpanded ? 'w-64' : 'w-15'
+        // Mobile: collapsed (60px) or expanded (75% width)
+        mobileExpanded ? 'w-3/4' : 'w-15'
       } ${
         // Desktop: normal behavior
         sidebarCollapsed ? 'lg:w-16' : 'lg:w-64'
-      } bg-white border-r border-gray-200 fixed top-0 left-0 h-full z-50 transition-all duration-300`}>
+      } bg-white border-r border-gray-200 fixed top-0 left-0 h-screen z-50 transition-all duration-300`}>
         
         <div className="p-3 lg:p-6 h-16 lg:h-20 flex items-center justify-between">
           {/* Logo */}
@@ -182,12 +179,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
         </div>
         {children}
-        {/* Loading Bar */}
-        {loading && (
-          <div className={`fixed top-0 left-15 lg:${sidebarCollapsed ? 'left-16' : 'left-64'} right-0 h-0.5 bg-gray-100 transition-all duration-300 z-40`}>
-            <div className="h-full bg-[#000150] animate-pulse" style={{width: '100%', animation: 'loadLeft 0.3s ease-out'}}></div>
-          </div>
-        )}
+
       </div>
       
       <style>{`

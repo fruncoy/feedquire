@@ -97,6 +97,21 @@ export function UserDashboard() {
 
 
       <div className="p-6">
+        {profile?.account_status === 'a7F9xQ2mP6kM4rT5' && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <div className="flex items-start justify-between">
+              <div className="flex items-start gap-3">
+                <div className="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="text-white text-xs font-bold">!</span>
+                </div>
+                <p className="text-red-800 text-sm">
+                  Your account will be automatically deleted after 48 hours if human verification is not completed.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+        
         {!features.proFeatures ? (
           <div className="mb-12">
             <div className="grid gap-4 mb-8">

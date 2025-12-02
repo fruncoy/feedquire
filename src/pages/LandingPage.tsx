@@ -442,7 +442,7 @@ export function LandingPage() {
             <div className="bg-white rounded-2xl p-6 text-center shadow-sm relative overflow-hidden">
               <div className="absolute -top-4 -right-4 text-8xl font-bold italic text-[#000150]/10 select-none step-number">1</div>
               <h3 className="text-xl font-bold text-[#000150] mb-3 relative z-10">Human Verification</h3>
-              <p className="text-gray-600 text-sm mb-4">Pay $1 verification fee to ensure quality and prevent spam</p>
+              <p className="text-gray-600 text-sm mb-4">Verify your account to keep spam, bots, and duplicate accounts out.</p>
               <div className="flex justify-center gap-1 flex-wrap">
                 <span className="border border-[#000150] text-[#000150] px-1.5 py-0.5 rounded-full text-xs">$1</span>
                 <span className="border border-[#000150] text-[#000150] px-1.5 py-0.5 rounded-full text-xs">One Time</span>

@@ -50,9 +50,7 @@ export function LoginPage() {
             <ArrowLeft size={20} />
             Back to Home
           </Link>
-          <div className="flex justify-center mb-8">
-            <Logo className="h-20 w-auto object-contain" />
-          </div>
+
 
         <div className="mb-8">
           <h1 className="text-3xl font-semibold text-gray-900 text-center mb-2">Welcome back</h1>

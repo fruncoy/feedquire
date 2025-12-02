@@ -25,6 +25,7 @@ export function AdminPlatformsPage() {
       const { data, error } = await supabase
         .from('ai_platforms')
         .select('*')
+        .order('is_assessment', { ascending: false })
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -237,9 +238,14 @@ export function AdminPlatformsPage() {
                 {platforms.map((platform) => {
                   const stats = platformStats[platform.id] || { approved: 0, rejected: 0, pending: 0 };
                   return (
-                    <tr key={platform.id} className="hover:bg-gray-50">
+                    <tr key={platform.id} className={`hover:bg-gray-50 ${platform.is_assessment ? 'bg-blue-100' : ''}`}>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {platform.domain}
+                        <div className="flex items-center gap-2">
+                          {platform.is_assessment && (
+                            <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full">A</span>
+                          )}
+                          {platform.domain}
+                        </div>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-600 max-w-xs truncate">
                         {platform.description || 'No description'}

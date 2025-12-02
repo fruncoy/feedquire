@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { SpeedInsights } from '@vercel/speed-insights/react';
+import { Analytics } from '@vercel/analytics/react';
 import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { RoleBasedRedirect } from './components/RoleBasedRedirect';
@@ -21,11 +22,13 @@ import { AdminDashboard } from './pages/AdminDashboard';
 import { AdminUsersPage } from './pages/AdminUsersPage';
 import { AdminPlatformsPage } from './pages/AdminPlatformsPage';
 import { AdminSubmissionsPage } from './pages/AdminSubmissionsPage';
+import { AdminCleanupPage } from './pages/AdminCleanupPage';
 import { UserProfilePage } from './pages/UserProfilePage';
 import { UnauthorizedPage } from './pages/UnauthorizedPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { AccountPage } from './pages/AccountPage';
 import { LandingPage } from './pages/LandingPage';
+import { PendingApprovalPage } from './pages/PendingApprovalPage';
 import { SecureProtectedRoute } from './components/SecureProtectedRoute';
 
 function App() {
@@ -128,6 +131,15 @@ function App() {
           />
 
           <Route
+            path="/pending-approval"
+            element={
+              <ProtectedRoute>
+                <PendingApprovalPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
             path="/feedback/:platformId"
             element={
               <SecureProtectedRoute requireFeature="tasks">
@@ -181,6 +193,15 @@ function App() {
             }
           />
 
+          <Route
+            path="/control/cleanup"
+            element={
+              <SecureProtectedRoute requireFeature="admin">
+                <AdminCleanupPage />
+              </SecureProtectedRoute>
+            }
+          />
+
           <Route path="/unauthorized" element={<UnauthorizedPage />} />
           <Route path="/home" element={<RoleBasedRedirect />} />
           <Route path="/" element={<LandingPage />} />
@@ -188,6 +209,7 @@ function App() {
         </Routes>
       </AuthProvider>
       <SpeedInsights />
+      <Analytics />
     </BrowserRouter>
   );
 }

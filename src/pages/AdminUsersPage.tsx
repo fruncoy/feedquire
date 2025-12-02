@@ -64,7 +64,7 @@ export function AdminUsersPage() {
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
-          account_status: 'tier3',
+          account_status: '2hF2kQ7rD5xVfM1tZ',
         })
         .eq('user_id', userId);
 
@@ -116,30 +116,7 @@ export function AdminUsersPage() {
     }
   };
 
-  const handleBan = async (userId: string) => {
-    if (!confirm('Are you sure you want to ban this user? They will not be able to log in or perform any tasks.')) return;
-    
-    setUpdating(true);
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          account_status: 'banned',
-        })
-        .eq('user_id', userId);
 
-      if (error) throw error;
-
-      await fetchUsers();
-      if (selectedUser && selectedUser.user_id === userId) {
-        setSelectedUser(null);
-      }
-    } catch (err) {
-      console.error('Error banning user:', err);
-    } finally {
-      setUpdating(false);
-    }
-  };
 
   const handleDeleteUser = async (userId: string) => {
     if (!confirm('Are you sure you want to permanently delete this user account? This action cannot be undone.')) return;
@@ -172,14 +149,14 @@ export function AdminUsersPage() {
   };
 
   const getStatusBadge = (status: string) => {
-    const badges: Record<string, { bg: string; text: string; icon: React.ReactNode }> = {
-      tier1: { bg: 'bg-blue-50', text: 'text-blue-700', icon: <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div> },
-      tier2: { bg: 'bg-orange-50', text: 'text-orange-700', icon: <AlertCircle size={16} /> },
-      tier3: { bg: 'bg-green-50', text: 'text-green-700', icon: <CheckCircle2 size={16} /> },
-      rejected: { bg: 'bg-red-50', text: 'text-red-700', icon: <XCircle size={16} /> },
-      banned: { bg: 'bg-gray-50', text: 'text-gray-700', icon: <Ban size={16} /> },
+    const badges: Record<string, { bg: string; text: string; label: string }> = {
+      'a7F9xQ2mP6kM4rT5': { bg: 'bg-blue-50', text: 'text-blue-700', label: 'Tier 1' },
+      '1Q3bF8vL1nT9pB6wR': { bg: 'bg-orange-50', text: 'text-orange-700', label: 'Tier 2' },
+      '2hF2kQ7rD5xVfM1tZ': { bg: 'bg-green-50', text: 'text-green-700', label: 'Tier 3' },
+      'rejected': { bg: 'bg-red-50', text: 'text-red-700', label: 'Rejected' },
+      'banned': { bg: 'bg-gray-50', text: 'text-gray-700', label: 'Banned' },
     };
-    const badge = badges[status] || badges.tier1;
+    const badge = badges[status] || { bg: 'bg-gray-50', text: 'text-gray-700', label: status };
     return badge;
   };
 
@@ -270,15 +247,7 @@ export function AdminUsersPage() {
               </div>
             )}
 
-            {selectedUser.account_status === 'tier3' && (
-              <button
-                onClick={() => handleBan(selectedUser.user_id)}
-                disabled={updating}
-                className="w-full bg-gray-700 text-white py-2.5 rounded-lg font-medium hover:bg-gray-800 disabled:opacity-50 transition"
-              >
-                {updating ? 'Processing...' : 'Ban User'}
-              </button>
-            )}
+
           </div>
           </div>
         </div>
@@ -302,12 +271,10 @@ export function AdminUsersPage() {
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User Name</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Account Status</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Submissions</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Approved / Rejected Count</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Earned</th>
-
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
                 </tr>
               </thead>
@@ -320,14 +287,10 @@ export function AdminUsersPage() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         {user.full_name || 'User'}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {user.user_id}
-                      </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className={`${badge.bg} ${badge.text} px-3 py-1 rounded-full flex items-center gap-1.5 text-sm font-medium w-fit`}>
-                          {badge.icon}
-                          {user.account_status}
-                        </div>
+                        <span className={`${badge.bg} ${badge.text} px-3 py-1 rounded-full text-sm font-medium`}>
+                          {badge.label}
+                        </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {stats.totalSubmissions}
@@ -342,22 +305,13 @@ export function AdminUsersPage() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         <div className="flex gap-2">
                           <button
-                            onClick={() => navigate(`/admin/users/${user.user_id}`)}
+                            onClick={() => navigate(`/control/accounts/${user.user_id}`)}
                             className="inline-flex items-center gap-1 px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium"
                           >
                             <Eye size={14} />
                             View Profile
                           </button>
-                          {user.account_status !== 'banned' && (
-                            <button
-                              onClick={() => handleBan(user.user_id)}
-                              disabled={updating}
-                              className="inline-flex items-center gap-1 px-3 py-1 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition text-sm font-medium disabled:opacity-50"
-                            >
-                              <Ban size={14} />
-                              Ban
-                            </button>
-                          )}
+
                           <button
                             onClick={() => handleDeleteUser(user.user_id)}
                             disabled={updating}

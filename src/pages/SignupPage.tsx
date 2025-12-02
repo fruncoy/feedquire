@@ -38,7 +38,7 @@ export function SignupPage() {
       // Redirect after showing success
       setTimeout(() => {
         navigate('/dashboard');
-      }, 1500);
+      }, 4000);
     } catch (err: any) {
       setError(err.message || 'Failed to sign up');
       setLoading(false);
@@ -56,9 +56,7 @@ export function SignupPage() {
             <ArrowLeft size={20} />
             Back to Home
           </Link>
-          <div className="flex justify-center mb-8">
-            <Logo className="h-24 w-auto object-contain" />
-          </div>
+
 
       <div className="mb-8">
         <h1 className="text-3xl font-semibold text-gray-900 text-center mb-2">Create account</h1>

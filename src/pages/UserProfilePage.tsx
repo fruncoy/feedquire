@@ -128,7 +128,7 @@ export function UserProfilePage() {
         <div className="p-6">
           <p className="text-gray-600">The requested user profile could not be found.</p>
           <button
-            onClick={() => navigate('/admin/users')}
+            onClick={() => navigate('/control/accounts')}
             className="mt-4 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition"
           >
             Back to Users
@@ -150,7 +150,7 @@ export function UserProfilePage() {
       <div className="p-6">
         <div className="max-w-6xl mx-auto">
           <button
-            onClick={() => navigate('/admin/users')}
+            onClick={() => navigate('/control/accounts')}
             className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-8"
           >
             <ChevronLeft size={18} />

@@ -30,7 +30,7 @@ export function VerifyPaymentPage() {
       paystack.newTransaction({
         key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY,
         email: user.email,
-        amount: 500, // KSh 5 (for testing)
+        amount: 13000, // KSh 130
         currency: 'KES',
         ref: `verify_${user.id}_${Date.now()}`,
         container: 'paystack-container', // Embed in specific div
@@ -93,7 +93,7 @@ export function VerifyPaymentPage() {
         .insert({
           user_id: user.id,
           reference: reference,
-          amount: 500,
+          amount: 13000,
           currency: 'KES',
           status: 'success',
           verified_at: new Date().toISOString()

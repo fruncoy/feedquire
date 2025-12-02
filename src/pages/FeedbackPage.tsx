@@ -104,7 +104,17 @@ export function FeedbackPage() {
     }));
   };
 
-  const isSectionComplete = currentSection?.questions.every(q => responses[q.id]?.trim());
+  const isSectionComplete = currentSection && (() => {
+    const allQuestions = Object.values(sections).flatMap(section => section.questions);
+    const lastQuestion = allQuestions[allQuestions.length - 1];
+    
+    if (isLastSection) {
+      // For last section, only require the last question (text input)
+      return responses[lastQuestion?.id]?.trim();
+    }
+    // For other sections, no questions are required (all optional)
+    return true;
+  })();
 
   const handleNext = () => {
     if (isSectionComplete && currentSectionIndex < totalSections - 1) {
@@ -124,15 +134,17 @@ export function FeedbackPage() {
     setSubmitting(true);
 
     try {
-      // Create submission only when submitting
+      // Create or update submission
       const { data: newSubmission, error: submissionError } = await supabase
         .from('feedback_submissions')
-        .insert({
+        .upsert({
           user_id: user.id,
           platform_id: platformId,
           status: 'submitted',
           completion_percentage: 100,
           submitted_at: new Date().toISOString(),
+        }, {
+          onConflict: 'user_id,platform_id'
         })
         .select()
         .maybeSingle();
@@ -140,19 +152,24 @@ export function FeedbackPage() {
       if (submissionError) throw submissionError;
       if (!newSubmission) throw new Error('Failed to create submission');
 
-      const responsesToInsert = Object.entries(responses).map(([questionId, response]) => ({
-        submission_id: newSubmission.id,
-        question_id: questionId,
-        response_text: response,
-      }));
+      // Only save the last question's response (like assessment)
+      const allQuestions = Object.values(sections).flatMap(section => section.questions);
+      const lastQuestion = allQuestions[allQuestions.length - 1];
+      const lastResponse = responses[lastQuestion?.id];
+      
+      if (lastResponse?.trim()) {
+        const { error: responseError } = await supabase
+          .from('submission_responses')
+          .insert({
+            submission_id: newSubmission.id,
+            question_id: lastQuestion.id,
+            response_text: lastResponse,
+          });
+        
+        if (responseError) throw responseError;
+      }
 
-      const { error: responsesError } = await supabase
-        .from('submission_responses')
-        .insert(responsesToInsert);
-
-      if (responsesError) throw responsesError;
-
-      navigate('/dashboard?success=true');
+      navigate('/pending-approval');
     } catch (err: any) {
       console.error('Submission error:', err);
       setError(err.message || 'Failed to submit feedback');
@@ -282,20 +299,113 @@ export function FeedbackPage() {
                   </div>
 
                   <div className="space-y-8">
-                    {currentSection.questions.map((question) => (
-                      <div key={question.id}>
-                        <label className="block text-sm font-medium text-gray-900 mb-3">
-                          {question.question_text}
-                        </label>
-                        <textarea
-                          value={responses[question.id] || ''}
-                          onChange={(e) => handleResponseChange(question.id, e.target.value)}
-                          placeholder="Share your detailed feedback..."
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition resize-none"
-                          rows={4}
-                        />
-                      </div>
-                    ))}
+                    {currentSection.questions.map((question, index) => {
+                      const allQuestions = Object.values(sections).flatMap(section => section.questions);
+                      const isLastQuestion = question.id === allQuestions[allQuestions.length - 1]?.id;
+                      const response = responses[question.id] || '';
+                      const wordCount = response.trim().split(/\s+/).filter(word => word.length > 0).length;
+                      
+                      return (
+                        <div key={question.id}>
+                          <label className="block text-sm font-medium text-gray-900 mb-3">
+                            {question.question_text}
+                          </label>
+                          {isLastQuestion ? (
+                            <div>
+                              <textarea
+                                value={response}
+                                onChange={(e) => {
+                                  const words = e.target.value.trim().split(/\s+/).filter(word => word.length > 0);
+                                  if (words.length <= 50) {
+                                    handleResponseChange(question.id, e.target.value);
+                                  }
+                                }}
+                                onPaste={(e) => {
+                                  e.preventDefault();
+                                  alert('Copy-pasting is not allowed. Please type your own response.');
+                                  return false;
+                                }}
+                                onDrop={(e) => {
+                                  e.preventDefault();
+                                  alert('Drag and drop is not allowed. Please type your own response.');
+                                  return false;
+                                }}
+                                onContextMenu={(e) => {
+                                  e.preventDefault();
+                                  return false;
+                                }}
+                                onKeyDown={(e) => {
+                                  if ((e.ctrlKey || e.metaKey) && (e.key === 'v' || e.key === 'V')) {
+                                    e.preventDefault();
+                                    alert('Copy-pasting is not allowed. Please type your own response.');
+                                    return false;
+                                  }
+                                }}
+                                placeholder="Type your own response... (max 50 words)"
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition resize-none"
+                                rows={4}
+                                autoComplete="off"
+                                spellCheck="false"
+                              />
+                              <div className="flex justify-between items-center mt-2">
+                                <span className="text-xs text-gray-500">No copy-pasting allowed</span>
+                                <span className={`text-xs ${
+                                  wordCount > 50 ? 'text-red-500' : wordCount > 40 ? 'text-yellow-500' : 'text-gray-500'
+                                }`}>
+                                  {wordCount}/50 words
+                                </span>
+                              </div>
+                            </div>
+                          ) : (
+                            <div>
+                              <textarea
+                                value={response}
+                                onChange={(e) => {
+                                  const words = e.target.value.trim().split(/\s+/).filter(word => word.length > 0);
+                                  if (words.length <= 50) {
+                                    handleResponseChange(question.id, e.target.value);
+                                  }
+                                }}
+                                onPaste={(e) => {
+                                  e.preventDefault();
+                                  alert('Copy-pasting is not allowed. Please type your own response.');
+                                  return false;
+                                }}
+                                onDrop={(e) => {
+                                  e.preventDefault();
+                                  alert('Drag and drop is not allowed. Please type your own response.');
+                                  return false;
+                                }}
+                                onContextMenu={(e) => {
+                                  e.preventDefault();
+                                  return false;
+                                }}
+                                onKeyDown={(e) => {
+                                  if ((e.ctrlKey || e.metaKey) && (e.key === 'v' || e.key === 'V')) {
+                                    e.preventDefault();
+                                    alert('Copy-pasting is not allowed. Please type your own response.');
+                                    return false;
+                                  }
+                                }}
+                                placeholder="Type your own response... (max 50 words)"
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition resize-none"
+                                rows={4}
+                                autoComplete="off"
+                                spellCheck="false"
+                              />
+                              <div className="flex justify-between items-center mt-2">
+                                <span className="text-xs text-gray-500">No copy-pasting allowed</span>
+                                <span className={`text-xs ${
+                                  wordCount > 50 ? 'text-red-500' : wordCount > 40 ? 'text-yellow-500' : 'text-gray-500'
+                                }`}>
+                                  {wordCount}/50 words
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}

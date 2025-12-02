@@ -108,7 +108,7 @@ export function SubmissionsPage() {
                       <div className="flex items-center gap-4 text-sm text-gray-500">
                         <span>Submitted: {new Date(submission.created_at).toLocaleDateString()}</span>
                         {submission.amount_earned > 0 && (
-                          <span className="font-medium text-green-600">${submission.amount_earned.toFixed(2)} earned</span>
+                          <span className="font-medium text-green-600">${submission.amount_earned.toFixed(2)} to be earned</span>
                         )}
                       </div>
                     </div>
