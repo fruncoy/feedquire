@@ -29,6 +29,9 @@ import { NotFoundPage } from './pages/NotFoundPage';
 import { AccountPage } from './pages/AccountPage';
 import { LandingPage } from './pages/LandingPage';
 import { PendingApprovalPage } from './pages/PendingApprovalPage';
+import { ProSuccessPage } from './pages/ProSuccessPage';
+import { BlogPage } from './pages/BlogPage';
+import { BlogArticlePage } from './pages/BlogArticlePage';
 import { SecureProtectedRoute } from './components/SecureProtectedRoute';
 
 function App() {
@@ -140,6 +143,15 @@ function App() {
           />
 
           <Route
+            path="/pro-success"
+            element={
+              <ProtectedRoute>
+                <ProSuccessPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
             path="/feedback/:platformId"
             element={
               <SecureProtectedRoute requireFeature="tasks">
@@ -202,6 +214,8 @@ function App() {
             }
           />
 
+          <Route path="/blog" element={<BlogPage />} />
+          <Route path="/blog/:slug" element={<BlogArticlePage />} />
           <Route path="/unauthorized" element={<UnauthorizedPage />} />
           <Route path="/home" element={<RoleBasedRedirect />} />
           <Route path="/" element={<LandingPage />} />

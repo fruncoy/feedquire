@@ -6,6 +6,7 @@ import { AIPlatform, FeedbackSubmission } from '../types';
 import { ChevronRight, Lock } from 'lucide-react';
 import { usePermissions } from '../hooks/usePermissions';
 import { DashboardLayout } from '../components/DashboardLayout';
+import { WelcomeLetter } from '../components/WelcomeLetter';
 
 export function UserDashboard() {
   const navigate = useNavigate();
@@ -14,12 +15,19 @@ export function UserDashboard() {
   const [platforms, setPlatforms] = useState<Record<string, AIPlatform>>({});
   const [submissions, setSubmissions] = useState<Record<string, FeedbackSubmission>>({});
   const [loading, setLoading] = useState(true);
+  const [showWelcome, setShowWelcome] = useState(false);
 
   useEffect(() => {
     if (!user) return;
     refreshProfile();
     fetchData();
   }, [user]);
+
+  useEffect(() => {
+    if (profile && profile.has_seen_welcome === false) {
+      setShowWelcome(true);
+    }
+  }, [profile]);
 
   const fetchData = async () => {
     try {
@@ -77,15 +85,26 @@ export function UserDashboard() {
   if (!profile) {
     return (
       <DashboardLayout>
-        <div className="bg-white border-b border-gray-200 rounded-br-lg">
-          <div className="px-6 py-6 h-20 flex flex-col justify-center">
-            <h1 className="text-2xl font-semibold text-gray-900">Loading...</h1>
-          </div>
-        </div>
         <div className="p-6">
-          <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
-            <div className="w-8 h-8 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading your profile...</p>
+          <div className="mb-12">
+            <div className="grid gap-4 mb-8">
+              <div className="w-full bg-white rounded-lg p-6 animate-pulse">
+                <div className="h-6 bg-gray-200 rounded w-1/3 mb-2"></div>
+                <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+              </div>
+              <div className="w-full bg-white rounded-lg p-6 animate-pulse">
+                <div className="h-6 bg-gray-200 rounded w-1/3 mb-2"></div>
+                <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+              </div>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 mb-8 lg:mb-12">
+            {[...Array(9)].map((_, i) => (
+              <div key={i} className="bg-gray-50 rounded-lg border border-gray-200 p-4 lg:p-6 animate-pulse">
+                <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
+                <div className="h-8 bg-gray-200 rounded w-3/4"></div>
+              </div>
+            ))}
           </div>
         </div>
       </DashboardLayout>
@@ -94,6 +113,16 @@ export function UserDashboard() {
 
   return (
     <DashboardLayout>
+      {showWelcome && user && profile && (
+        <WelcomeLetter
+          userId={user.id}
+          signupDate={profile.created_at}
+          onClose={() => {
+            setShowWelcome(false);
+            refreshProfile();
+          }}
+        />
+      )}
 
 
       <div className="p-6">
@@ -112,7 +141,7 @@ export function UserDashboard() {
           </div>
         )}
         
-        {!features.proFeatures ? (
+        {!permissionsLoading && !features.proFeatures && (
           <div className="mb-12">
             <div className="grid gap-4 mb-8">
               <button
@@ -142,20 +171,25 @@ export function UserDashboard() {
 
               <button
                 onClick={() => {
-                  // Check if user has submitted assessment
                   const assessmentPlatform = Object.values(platforms).find(p => p.is_assessment);
-                  const hasSubmittedAssessment = assessmentPlatform && submissions[assessmentPlatform.id];
+                  const submission = assessmentPlatform && submissions[assessmentPlatform.id];
                   
-                  if (hasSubmittedAssessment) {
+                  if (submission?.status === 'submitted' || submission?.status === 'approved') {
                     navigate('/awaiting-approval');
-                  } else if (features.assessment) {
+                  } else if (submission?.status !== 'rejected' && features.assessment) {
                     navigate('/assessment-test');
                   }
                 }}
                 className={`w-full bg-white rounded-lg p-6 transition text-left ${
-                  !features.assessment ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-md'
+                  !features.assessment || (() => {
+                    const ap = Object.values(platforms).find(p => p.is_assessment);
+                    return ap && submissions[ap.id]?.status === 'rejected';
+                  })() ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-md'
                 }`}
-                disabled={!features.assessment}
+                disabled={!features.assessment || (() => {
+                  const ap = Object.values(platforms).find(p => p.is_assessment);
+                  return ap && submissions[ap.id]?.status === 'rejected';
+                })()}
               >
                 <div className="flex items-start justify-between gap-6">
                   <div className="flex-1">
@@ -167,12 +201,14 @@ export function UserDashboard() {
                     }`}>
                       {(() => {
                         const assessmentPlatform = Object.values(platforms).find(p => p.is_assessment);
-                        const hasSubmittedAssessment = assessmentPlatform && submissions[assessmentPlatform.id];
+                        const submission = assessmentPlatform && submissions[assessmentPlatform.id];
                         
                         if (!features.assessment) {
                           return 'Pass test to craft experiences that win hearts and markets (Available after human verification)';
-                        } else if (hasSubmittedAssessment) {
-                          return 'Assessment submitted - awaiting approval';
+                        } else if (submission?.status === 'rejected') {
+                          return 'Assessment failed - No retake allowed';
+                        } else if (submission?.status === 'submitted' || submission?.status === 'approved') {
+                          return 'Assessment approved - awaiting system update';
                         } else {
                           return 'Pass test to craft experiences that win hearts and markets';
                         }
@@ -188,10 +224,12 @@ export function UserDashboard() {
                         <div className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${
                           (() => {
                             const assessmentPlatform = Object.values(platforms).find(p => p.is_assessment);
-                            const hasSubmittedAssessment = assessmentPlatform && submissions[assessmentPlatform.id];
+                            const submission = assessmentPlatform && submissions[assessmentPlatform.id];
                             
-                            if (hasSubmittedAssessment) {
-                              return 'bg-yellow-50 text-yellow-700';
+                            if (submission?.status === 'rejected') {
+                              return 'bg-red-50 text-red-700';
+                            } else if (submission?.status === 'submitted' || submission?.status === 'approved') {
+                              return 'bg-green-50 text-green-700';
                             } else if (!features.proFeatures) {
                               return 'bg-orange-50 text-orange-700';
                             } else {
@@ -201,10 +239,14 @@ export function UserDashboard() {
                         }`}>
                           {(() => {
                             const assessmentPlatform = Object.values(platforms).find(p => p.is_assessment);
-                            const hasSubmittedAssessment = assessmentPlatform && submissions[assessmentPlatform.id];
+                            const submission = assessmentPlatform && submissions[assessmentPlatform.id];
                             
-                            if (hasSubmittedAssessment) {
-                              return 'Awaiting Approval';
+                            if (submission?.status === 'rejected') {
+                              return 'Failed';
+                            } else if (submission?.status === 'submitted') {
+                              return 'Under Review';
+                            } else if (submission?.status === 'approved') {
+                              return 'Approved';
                             } else if (!features.proFeatures) {
                               return 'Pending';
                             } else {
@@ -216,9 +258,9 @@ export function UserDashboard() {
                       )}
                       {(() => {
                         const assessmentPlatform = Object.values(platforms).find(p => p.is_assessment);
-                        const hasSubmittedAssessment = assessmentPlatform && submissions[assessmentPlatform.id];
+                        const submission = assessmentPlatform && submissions[assessmentPlatform.id];
                         
-                        return (features.assessment && !features.proFeatures && !hasSubmittedAssessment) || hasSubmittedAssessment;
+                        return (features.assessment && !features.proFeatures && submission?.status !== 'rejected' && !submission) || submission?.status === 'submitted' || submission?.status === 'approved';
                       })() && (
                         <ChevronRight size={24} className="text-gray-400" />
                       )}
@@ -244,7 +286,7 @@ export function UserDashboard() {
               </button>
             </div>
           </div>
-        ) : null}
+        )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 mb-8 lg:mb-12">
           <div className="bg-gray-50 rounded-lg border border-gray-200 p-4 lg:p-6">

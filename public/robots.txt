@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+Allow: /signup
+Allow: /login
+Allow: /blog
+Disallow: /dashboard
+Disallow: /tasks
+Disallow: /submissions
+Disallow: /profile
+Disallow: /payments
+Disallow: /account
+Disallow: /control
+
+Sitemap: https://www.feedquire.com/sitemap.xml

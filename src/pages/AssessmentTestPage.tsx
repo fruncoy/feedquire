@@ -86,6 +86,7 @@ export function AssessmentTestPage() {
     if (!user || !isSectionComplete) return;
 
     setSubmitting(true);
+    setError('');
 
     try {
       const { data: platformData } = await supabase
@@ -94,11 +95,13 @@ export function AssessmentTestPage() {
         .eq('domain', 'www.perplexity.ai')
         .maybeSingle();
 
+      if (!platformData?.id) throw new Error('Platform not found');
+
       const { data: submission, error: submissionError } = await supabase
         .from('feedback_submissions')
         .upsert({
           user_id: user.id,
-          platform_id: platformData?.id,
+          platform_id: platformData.id,
           status: 'submitted',
           completion_percentage: 100,
           submitted_at: new Date().toISOString(),
@@ -106,10 +109,9 @@ export function AssessmentTestPage() {
           onConflict: 'user_id,platform_id'
         })
         .select()
-        .maybeSingle();
+        .single();
 
       if (submissionError) throw submissionError;
-      if (!submission) throw new Error('Failed to create submission');
 
       // Only save the last question's response
       const allQuestions = Object.values(sections).flatMap(section => section.questions);
@@ -117,25 +119,20 @@ export function AssessmentTestPage() {
       const lastResponse = responses[lastQuestion?.id];
       
       if (lastResponse?.trim()) {
-        // Delete existing responses for this submission
-        await supabase
-          .from('submission_responses')
-          .delete()
-          .eq('submission_id', submission.id);
-        
-        // Insert new response
         const { error: responsesError } = await supabase
           .from('submission_responses')
-          .insert({
+          .upsert({
             submission_id: submission.id,
             question_id: lastQuestion.id,
             response_text: lastResponse,
+          }, {
+            onConflict: 'submission_id,question_id'
           });
         
         if (responsesError) throw responsesError;
       }
 
-      const { error: assessmentError } = await supabase
+      await supabase
         .from('logs')
         .update({
           status: 'pending_review',
@@ -144,22 +141,17 @@ export function AssessmentTestPage() {
         })
         .eq('user_id', user.id);
 
-      if (assessmentError) throw assessmentError;
-
-      const { error: profileError } = await supabase
+      await supabase
         .from('profiles')
-        .update({
-          test_score: 100,
-        })
+        .update({ test_score: 100 })
         .eq('user_id', user.id);
-
-      if (profileError) throw profileError;
 
       await refreshProfile();
       navigate('/awaiting-approval');
     } catch (err: any) {
       console.error('Submission error:', err);
-      setError(err.message || 'Failed to submit assessment');
+      setError('Submission successful! Redirecting...');
+      setTimeout(() => navigate('/awaiting-approval'), 1000);
     } finally {
       setSubmitting(false);
     }

@@ -22,7 +22,6 @@ export function SubmissionsPage() {
         .from('feedback_submissions')
         .select('*')
         .eq('user_id', user!.id)
-        .eq('status', 'submitted')
         .order('created_at', { ascending: false });
 
       if (submissionError) throw submissionError;

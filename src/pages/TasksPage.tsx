@@ -57,10 +57,8 @@ export function TasksPage() {
   };
 
   const handleStartTask = async (platformId: string) => {
-    // Check if this specific task is under review
     const submission = submissions[platformId];
-    if (submission && submission.status === 'submitted') {
-      navigate('/pending-approval');
+    if (submission) {
       return;
     }
     
@@ -80,57 +78,38 @@ export function TasksPage() {
             <div className="w-8 h-8 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin mx-auto mb-4"></div>
             <p className="text-gray-600">Loading tasks...</p>
           </div>
-        ) : Object.keys(platforms).length === 0 ? (
-          <div className="bg-gray-50 rounded-lg border border-gray-200 p-12 text-center">
-            <p className="text-gray-600 mb-2">No tasks assigned yet</p>
-            <p className="text-sm text-gray-500">
-              {!features.tasks
-                ? 'Get approved to unlock tasks'
-                : 'Check back soon for new AI platforms'}
-            </p>
+        ) : Object.keys(platforms).filter(id => !submissions[id]).length === 0 ? (
+          <div className="bg-gray-50 rounded-lg border border-gray-200 p-12">
+            <div className="flex items-center gap-3">
+              <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse" style={{animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'}}></div>
+              <p className="text-base text-gray-600">Check back soon for more tasks</p>
+            </div>
           </div>
         ) : (
           <div className="grid gap-4">
             {Object.values(platforms).map((platform) => {
               const submission = submissions[platform.id];
-              if (!platform) return null;
-
-              const isCompleted = submission?.status === 'paid';
-              const isUnderReview = submission?.status === 'submitted';
+              if (!platform || submission) return null;
 
               return (
                 <button
                   key={platform.id}
                   onClick={() => features.tasks ? handleStartTask(platform.id) : null}
                   className={`w-full bg-white border border-gray-200 rounded-lg p-6 transition text-left ${
-                    features.tasks && !isUnderReview ? 'hover:border-gray-300 hover:shadow-md cursor-pointer' : 'opacity-50 cursor-not-allowed'
+                    features.tasks ? 'hover:border-gray-300 hover:shadow-md cursor-pointer' : 'opacity-50 cursor-not-allowed'
                   }`}
-                  disabled={!features.tasks || isUnderReview}
+                  disabled={!features.tasks}
                 >
                 <div className="flex flex-col">
                   <div className="flex items-start justify-between gap-6 mb-4">
                     <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-lg font-semibold text-gray-900">{platform.domain}</h3>
-                        {isCompleted && (
-                          <div className="flex items-center gap-1 bg-green-50 text-green-700 px-2.5 py-1 rounded-full text-xs font-medium">
-                            <CheckCircle2 size={14} /> Paid
-                          </div>
-                        )}
-                        {isUnderReview && (
-                          <div className="flex items-center gap-1 bg-yellow-50 text-yellow-700 px-2.5 py-1 rounded-full text-xs font-medium">
-                            Under Review
-                          </div>
-                        )}
-                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">{platform.domain}</h3>
                       <p className="text-gray-600 text-sm">{platform.description}</p>
                     </div>
                     
-                    {!isCompleted && (
-                      <div className="flex-shrink-0">
-                        <ChevronRight size={24} className="text-gray-400" />
-                      </div>
-                    )}
+                    <div className="flex-shrink-0">
+                      <ChevronRight size={24} className="text-gray-400" />
+                    </div>
                   </div>
                   
                   <div className="flex justify-end items-center gap-3">
@@ -142,13 +121,13 @@ export function TasksPage() {
                         if (features.tasks) handleStartTask(platform.id);
                       }}
                       className={`px-2.5 py-1 rounded-full text-xs font-semibold transition ${
-                        features.tasks && !isUnderReview
+                        features.tasks
                           ? 'bg-[#000150] text-white hover:bg-[#000130] cursor-pointer' 
                           : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                       }`}
-                      disabled={!features.tasks || isUnderReview}
+                      disabled={!features.tasks}
                     >
-                      {isUnderReview ? 'Under Review' : 'Start Task'}
+                      Start Task
                     </button>
                   </div>
                 </div>

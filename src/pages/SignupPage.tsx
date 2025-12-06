@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Logo } from '../components/Logo';
@@ -9,11 +9,21 @@ export function SignupPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [phone, setPhone] = useState('');
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const navigate = useNavigate();
   const { signUp } = useAuth();
+
+  useEffect(() => {
+    document.title = 'Sign Up - Join Feedquire | Start Earning Testing AI';
+    const metaDescription = document.querySelector('meta[name="description"]');
+    if (metaDescription) {
+      metaDescription.setAttribute('content', 'Create your free Feedquire account and start earning money testing AI platforms. Get paid up to $14 per task. Join our global community of AI testers today.');
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,13 +39,17 @@ export function SignupPage() {
       return;
     }
 
+    if (!termsAccepted) {
+      setError('You must agree to the terms to create an account');
+      return;
+    }
+
     setLoading(true);
 
     try {
-      await signUp(name, email, password);
+      await signUp(name, email, password, phone);
       setShowSuccess(true);
       setLoading(false);
-      // Redirect after showing success
       setTimeout(() => {
         navigate('/dashboard');
       }, 4000);
@@ -59,8 +73,8 @@ export function SignupPage() {
 
 
       <div className="mb-8">
-        <h1 className="text-3xl font-semibold text-gray-900 text-center mb-2">Create account</h1>
-        <p className="text-gray-600 text-center">Join Feedquire and help shape the AI landscape</p>
+        <h1 className="text-3xl font-semibold text-gray-900 mb-2">Create account</h1>
+        <p className="text-gray-600">Join Feedquire and help shape the AI landscape</p>
       </div>
 
         {error && (
@@ -129,7 +143,34 @@ export function SignupPage() {
             <p className="text-xs text-gray-600 mt-1">At least 8 characters</p>
           </div>
 
-          
+          <div>
+            <label htmlFor="phone" className="block text-sm font-medium text-gray-900 mb-2">
+              Phone Number
+            </label>
+            <input
+              id="phone"
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="1 234 567 8900 or 254 712 345 678"
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition"
+            />
+            <p className="text-xs text-gray-600 mt-1">Start with country code</p>
+          </div>
+
+          <div className="flex items-start gap-3 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+            <input
+              id="terms"
+              type="checkbox"
+              checked={termsAccepted}
+              onChange={(e) => setTermsAccepted(e.target.checked)}
+              required
+              className="mt-1 w-4 h-4 text-gray-900 border-gray-300 rounded focus:ring-2 focus:ring-gray-900"
+            />
+            <label htmlFor="terms" className="text-xs text-gray-700 leading-relaxed">
+              By creating an account, you agree this is a subsidized program open to all countries except India and Pakistan. VPNs or proxies are prohibited and result in a permanent ban. All countries receive the exact same pay rates, and tasks are assigned solely based on quality.
+            </label>
+          </div>
 
           <button
             type="submit"

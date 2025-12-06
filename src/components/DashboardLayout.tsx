@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { usePermissions } from '../hooks/usePermissions';
 import { LogOut, Home, CheckSquare, FileText, User, CreditCard, Users, Package, ClipboardList, Crown, Trash2 } from 'lucide-react';
 import { Logo } from './Logo';
+import { HelpButton } from './HelpButton';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -181,6 +182,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         {children}
 
       </div>
+      
+      {!isAdminRoute && <HelpButton />}
       
       <style>{`
         @keyframes loadLeft {

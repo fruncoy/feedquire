@@ -17,6 +17,11 @@ export interface Profile {
   test_score: number;
   total_earned: number;
   mpesa_number?: string;
+  paypal_email?: string;
+  has_seen_welcome?: boolean;
+  pro_payment_status?: boolean;
+  pro_payment_date?: string;
+  pro_payment_reference?: string;
   created_at: string;
   updated_at: string;
 }

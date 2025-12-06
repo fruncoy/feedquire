@@ -116,16 +116,13 @@ export function AdminSubmissionsPage() {
   };
 
   const handleReject = async (submissionId: string) => {
-    const reason = prompt('Enter rejection reason:');
-    if (!reason) return;
-
     setUpdating(true);
     try {
       const { error } = await supabase
         .from('feedback_submissions')
         .update({
           status: 'rejected',
-          rejection_reason: reason,
+          rejection_reason: null,
         })
         .eq('id', submissionId);
 

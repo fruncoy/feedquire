@@ -1,13 +1,13 @@
 import { DashboardLayout } from '../components/DashboardLayout';
-import { CheckCircle2, Clock, CreditCard, Smartphone, Edit2 } from 'lucide-react';
+import { CheckCircle2, Clock, CreditCard, Mail, Edit2 } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 
 export function PaymentsPage() {
   const { profile, refreshProfile } = useAuth();
-  const [showMpesaModal, setShowMpesaModal] = useState(false);
-  const [mpesaNumber, setMpesaNumber] = useState(profile?.mpesa_number || '');
+  const [showPaypalModal, setShowPaypalModal] = useState(false);
+  const [paypalEmail, setPaypalEmail] = useState(profile?.paypal_email || '');
   const [saving, setSaving] = useState(false);
   const demoPayments = [
     {
@@ -22,7 +22,7 @@ export function PaymentsPage() {
       id: '2', 
       date: '2024-11-15',
       amount: 8.50,
-      method: 'M-Pesa',
+      method: 'PayPal',
       status: 'completed',
       reference: 'PAY-2024-002'
     },
@@ -45,6 +45,34 @@ export function PaymentsPage() {
       </div>
       <div className="p-6">
         <div className="max-w-4xl mx-auto">
+          <div className="bg-gray-50 rounded-lg border border-gray-200 p-6 mb-8">
+            <h3 className="font-medium text-gray-900 mb-3">Payment Methods</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
+                <div>
+                  <p className="font-medium text-gray-900">Bank Transfer</p>
+                  <p className="text-gray-600 text-sm">Direct deposit to your bank account</p>
+                </div>
+                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">Coming Soon</span>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
+                <div>
+                  <p className="font-medium text-gray-900">PayPal</p>
+                  <p className="text-gray-600 text-sm">
+                    {profile?.paypal_email ? profile.paypal_email : 'PayPal account'}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowPaypalModal(true)}
+                  className="flex items-center gap-1 text-blue-600 hover:text-blue-700 text-sm"
+                >
+                  <Edit2 size={14} />
+                  {profile?.paypal_email ? 'Edit' : 'Setup'}
+                </button>
+              </div>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             <div className="bg-green-50 border border-green-200 rounded-lg p-6">
               <div className="flex items-start gap-3">
@@ -66,7 +94,7 @@ export function PaymentsPage() {
                 <div>
                   <h3 className="font-medium text-blue-900 mb-1">Automatic Payouts</h3>
                   <p className="text-blue-800 text-sm">
-                    We process automatic payouts to your bank account or M-Pesa monthly. 
+                    We process automatic payouts to your bank account or PayPal monthly. 
                     Payments are typically processed every 30th of the month.
                   </p>
                 </div>
@@ -78,58 +106,21 @@ export function PaymentsPage() {
             <p className="text-gray-600 mb-2">No payment history yet</p>
             <p className="text-gray-500 text-sm">Your payments will appear here after monthly processing on the 30th</p>
           </div>
-
-          <div className="mt-8 bg-gray-50 rounded-lg border border-gray-200 p-6">
-            <h3 className="font-medium text-gray-900 mb-3">Payment Methods</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
-                <div className="flex items-center gap-3">
-                  <CreditCard size={20} className="text-gray-600" />
-                  <div>
-                    <p className="font-medium text-gray-900">Bank Transfer</p>
-                    <p className="text-gray-600 text-sm">Direct deposit to your bank account</p>
-                  </div>
-                </div>
-                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">Coming Soon</span>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
-                <div className="flex items-center gap-3">
-                  <Smartphone size={20} className="text-gray-600" />
-                  <div>
-                    <p className="font-medium text-gray-900">M-Pesa</p>
-                    <p className="text-gray-600 text-sm">
-                      {profile?.mpesa_number ? profile.mpesa_number : 'Mobile money transfer'}
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setShowMpesaModal(true)}
-                  className="flex items-center gap-1 text-blue-600 hover:text-blue-700 text-sm"
-                >
-                  <Edit2 size={14} />
-                  {profile?.mpesa_number ? 'Edit' : 'Setup'}
-                </button>
-              </div>
-            </div>
-          </div>
         </div>
 
-        {showMpesaModal && (
+        {showPaypalModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Setup M-Pesa Number</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Setup PayPal Account</h3>
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  M-Pesa Phone Number
+                  Gmail Account (PayPal)
                 </label>
                 <input
-                  type="tel"
-                  value={mpesaNumber}
-                  onChange={(e) => {
-                    const value = e.target.value.replace(/[^0-9]/g, '').slice(0, 12);
-                    setMpesaNumber(value);
-                  }}
-                  placeholder="e.g. 254712345678"
+                  type="email"
+                  value={paypalEmail}
+                  onChange={(e) => setPaypalEmail(e.target.value)}
+                  placeholder="your.email@gmail.com"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -140,27 +131,27 @@ export function PaymentsPage() {
                     try {
                       const { error } = await supabase
                         .from('profiles')
-                        .update({ mpesa_number: mpesaNumber })
+                        .update({ paypal_email: paypalEmail })
                         .eq('user_id', profile?.user_id);
                       
                       if (error) throw error;
                       await refreshProfile();
-                      setShowMpesaModal(false);
+                      setShowPaypalModal(false);
                     } catch (err) {
-                      console.error('Error saving M-Pesa number:', err);
+                      console.error('Error saving PayPal email:', err);
                     } finally {
                       setSaving(false);
                     }
                   }}
-                  disabled={saving || !mpesaNumber.trim()}
+                  disabled={saving || !paypalEmail.trim()}
                   className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition"
                 >
                   {saving ? 'Saving...' : 'Save'}
                 </button>
                 <button
                   onClick={() => {
-                    setShowMpesaModal(false);
-                    setMpesaNumber(profile?.mpesa_number || '');
+                    setShowPaypalModal(false);
+                    setPaypalEmail(profile?.paypal_email || '');
                   }}
                   className="flex-1 border border-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-50 transition"
                 >

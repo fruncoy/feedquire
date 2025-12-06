@@ -8,7 +8,7 @@ interface AuthContextType {
   profile: Profile | null;
   session: Session | null;
   loading: boolean;
-  signUp: (name: string, email: string, password: string) => Promise<void>;
+  signUp: (name: string, email: string, password: string, phone?: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -186,7 +186,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const signUp = async (name: string, email: string, password: string) => {
+  const signUp = async (name: string, email: string, password: string, phone?: string) => {
     try {
       console.log('Signing up:', email);
       const { data, error } = await supabase.auth.signUp({
@@ -194,12 +194,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         password,
         options: {
           data: {
-            full_name: name
+            full_name: name,
+            phone_number: phone || ''
           }
         }
       });
 
       if (error) throw error;
+
+      if (data.user && phone) {
+        await supabase
+          .from('profiles')
+          .update({ mpesa_number: phone })
+          .eq('user_id', data.user.id);
+      }
+
       console.log('Signup successful:', data.user?.email);
     } catch (error) {
       console.error('Sign up error:', error);

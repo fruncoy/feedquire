@@ -1,7 +1,66 @@
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabase';
 import { DashboardLayout } from '../components/DashboardLayout';
-import { Check, Crown } from 'lucide-react';
+import { Check, Crown, CheckCircle } from 'lucide-react';
 
 export function AccountPage() {
+  const navigate = useNavigate();
+  const { user, profile, refreshProfile } = useAuth();
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [hasPaidPro, setHasPaidPro] = useState(false);
+
+  useEffect(() => {
+    if (profile?.pro_payment_status) {
+      setHasPaidPro(true);
+    }
+  }, [profile]);
+
+  const handlePaymentSuccess = async (response: any, paymentRef: string) => {
+    try {
+      await supabase
+        .from('profiles')
+        .update({
+          pro_payment_status: true,
+          pro_payment_date: new Date().toISOString(),
+          pro_payment_reference: paymentRef
+        })
+        .eq('user_id', user!.id);
+      
+      await refreshProfile();
+      navigate('/pro-success');
+    } catch (error) {
+      console.error('Error updating payment status:', error);
+    }
+  };
+
+  const handleUpgradeToPro = () => {
+    if (!user || !profile || hasPaidPro) return;
+    
+    setIsProcessing(true);
+    
+    const paymentRef = `pro_upgrade_${user.id}_${Date.now()}`;
+    
+    // @ts-ignore
+    const handler = PaystackPop.setup({
+      key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY,
+      email: user.email,
+      amount: 1280000,
+      currency: 'KES',
+      ref: paymentRef,
+      metadata: {
+        user_id: user.id,
+        full_name: profile.full_name,
+        upgrade_type: 'pro_membership'
+      },
+      callback: (response: any) => handlePaymentSuccess(response, paymentRef),
+      onClose: () => setIsProcessing(false)
+    });
+    
+    handler.openIframe();
+  };
+
   return (
     <DashboardLayout>
       <div className="p-6">
@@ -51,6 +110,12 @@ export function AccountPage() {
 
             {/* Pro Plan */}
             <div className="bg-gradient-to-br from-amber-50 to-yellow-50 border-2 border-amber-200 rounded-xl p-6 relative shadow-lg">
+              {hasPaidPro && (
+                <div className="absolute top-4 right-4 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
+                  <CheckCircle size={14} />
+                  Paid
+                </div>
+              )}
 
 
               <div className="mb-4">
@@ -109,9 +174,19 @@ export function AccountPage() {
                 </div>
               </div>
 
-              <button className="w-full bg-gradient-to-r from-amber-500 to-yellow-600 text-white py-3 rounded-lg font-semibold hover:from-amber-600 hover:to-yellow-700 transition-all duration-200 shadow-md hover:shadow-lg">
-                Upgrade to Pro
-              </button>
+              {hasPaidPro ? (
+                <div className="w-full bg-green-100 border border-green-300 text-green-800 py-3 rounded-lg font-semibold text-center">
+                  Pro Account Pending Setup
+                </div>
+              ) : (
+                <button 
+                  onClick={handleUpgradeToPro}
+                  disabled={isProcessing}
+                  className="w-full bg-gradient-to-r from-amber-500 to-yellow-600 text-white py-3 rounded-lg font-semibold hover:from-amber-600 hover:to-yellow-700 transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isProcessing ? 'Processing...' : 'Upgrade to Pro'}
+                </button>
+              )}
             </div>
           </div>
         </div>
