@@ -416,7 +416,7 @@ export function LandingPage() {
 
       <section className="hero">
         <div className="hero-content">
-          <h1>
+          <h1 itemProp="headline">
             <span className="regular-text">Test AI.</span> <span className="italic-text">Give Feedback.</span> <span className="gradient-text regular-text">Earn Up to $14 Per Task.</span>
           </h1>
           
