@@ -134,20 +134,33 @@ export function FeedbackPage() {
     setSubmitting(true);
 
     try {
-      // Create submission
-      const { data: newSubmission, error: submissionError } = await supabase
+      // Check if submission already exists
+      let { data: existingSubmission } = await supabase
         .from('feedback_submissions')
-        .insert({
-          user_id: user.id,
-          platform_id: platformId,
-          status: 'submitted',
-          completion_percentage: 100,
-          submitted_at: new Date().toISOString(),
-        })
-        .select()
-        .single();
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('platform_id', platformId)
+        .maybeSingle();
 
-      if (submissionError) throw submissionError;
+      let newSubmission = existingSubmission;
+
+      if (!existingSubmission) {
+        // Create new submission
+        const { data, error: submissionError } = await supabase
+          .from('feedback_submissions')
+          .insert({
+            user_id: user.id,
+            platform_id: platformId,
+            status: 'submitted',
+            completion_percentage: 100,
+            submitted_at: new Date().toISOString(),
+          })
+          .select()
+          .single();
+
+        if (submissionError) throw submissionError;
+        newSubmission = data;
+      }
 
       // Only save the last question's response (like assessment)
       const allQuestions = Object.values(sections).flatMap(section => section.questions);
