@@ -134,23 +134,20 @@ export function FeedbackPage() {
     setSubmitting(true);
 
     try {
-      // Create or update submission
+      // Create submission
       const { data: newSubmission, error: submissionError } = await supabase
         .from('feedback_submissions')
-        .upsert({
+        .insert({
           user_id: user.id,
           platform_id: platformId,
           status: 'submitted',
           completion_percentage: 100,
           submitted_at: new Date().toISOString(),
-        }, {
-          onConflict: 'user_id,platform_id'
         })
         .select()
-        .maybeSingle();
+        .single();
 
       if (submissionError) throw submissionError;
-      if (!newSubmission) throw new Error('Failed to create submission');
 
       // Only save the last question's response (like assessment)
       const allQuestions = Object.values(sections).flatMap(section => section.questions);
