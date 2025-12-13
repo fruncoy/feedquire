@@ -7,49 +7,77 @@
 
 <url>
   <loc>https://www.feedquire.com/</loc>
-  <lastmod>2024-12-03T00:05:04+00:00</lastmod>
+  <lastmod>2024-12-16T12:00:00+00:00</lastmod>
   <priority>1.0</priority>
   <changefreq>weekly</changefreq>
 </url>
 
 <url>
+  <loc>https://www.feedquire.com/#about</loc>
+  <lastmod>2024-12-16T12:00:00+00:00</lastmod>
+  <priority>0.9</priority>
+  <changefreq>monthly</changefreq>
+</url>
+
+<url>
+  <loc>https://www.feedquire.com/#how-it-works</loc>
+  <lastmod>2024-12-16T12:00:00+00:00</lastmod>
+  <priority>0.8</priority>
+  <changefreq>monthly</changefreq>
+</url>
+
+<url>
+  <loc>https://www.feedquire.com/#why-us</loc>
+  <lastmod>2024-12-16T12:00:00+00:00</lastmod>
+  <priority>0.8</priority>
+  <changefreq>monthly</changefreq>
+</url>
+
+<url>
+  <loc>https://www.feedquire.com/#faqs</loc>
+  <lastmod>2024-12-16T12:00:00+00:00</lastmod>
+  <priority>0.7</priority>
+  <changefreq>monthly</changefreq>
+</url>
+
+<url>
   <loc>https://www.feedquire.com/signup</loc>
-  <lastmod>2024-12-03T00:05:04+00:00</lastmod>
+  <lastmod>2024-12-16T12:00:00+00:00</lastmod>
   <priority>0.9</priority>
   <changefreq>monthly</changefreq>
 </url>
 
 <url>
   <loc>https://www.feedquire.com/login</loc>
-  <lastmod>2024-12-03T00:05:04+00:00</lastmod>
+  <lastmod>2024-12-16T12:00:00+00:00</lastmod>
   <priority>0.8</priority>
   <changefreq>monthly</changefreq>
 </url>
 
 <url>
   <loc>https://www.feedquire.com/blog</loc>
-  <lastmod>2024-12-03T00:05:04+00:00</lastmod>
+  <lastmod>2024-12-16T12:00:00+00:00</lastmod>
   <priority>0.7</priority>
   <changefreq>weekly</changefreq>
 </url>
 
 <url>
   <loc>https://www.feedquire.com/blog/why-feedquire-leading-ai-testing-platform-earn-money</loc>
-  <lastmod>2024-12-03T00:05:04+00:00</lastmod>
+  <lastmod>2024-12-16T12:00:00+00:00</lastmod>
   <priority>0.6</priority>
   <changefreq>monthly</changefreq>
 </url>
 
 <url>
   <loc>https://www.feedquire.com/blog/step-by-step-guide-join-feedquire-start-earning</loc>
-  <lastmod>2024-12-03T00:05:04+00:00</lastmod>
+  <lastmod>2024-12-16T12:00:00+00:00</lastmod>
   <priority>0.6</priority>
   <changefreq>monthly</changefreq>
 </url>
 
 <url>
   <loc>https://www.feedquire.com/blog/feedquire-basic-vs-pro-account-which-plan-choose</loc>
-  <lastmod>2024-12-03T00:05:04+00:00</lastmod>
+  <lastmod>2024-12-16T12:00:00+00:00</lastmod>
   <priority>0.6</priority>
   <changefreq>monthly</changefreq>
 </url>

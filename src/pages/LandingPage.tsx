@@ -381,6 +381,7 @@ export function LandingPage() {
           <a href="#how-it-works" className="nav-link">How It Works</a>
           <a href="#why-us" className="nav-link">Why Us</a>
           <a href="#faqs" className="nav-link">FAQs</a>
+          <a href="#about" className="nav-link">About Us</a>
           <a href="#support" className="nav-link">Support</a>
         </div>
         <button 
@@ -408,6 +409,7 @@ export function LandingPage() {
         <a href="#how-it-works" onClick={toggleMobileMenu}>How It Works</a>
         <a href="#why-us" onClick={toggleMobileMenu}>Why Us</a>
         <a href="#faqs" onClick={toggleMobileMenu}>FAQs</a>
+        <a href="#about" onClick={toggleMobileMenu}>About Us</a>
         <a href="#support" onClick={toggleMobileMenu}>Support</a>
         <Link to="/signup" className="mobile-cta-btn" onClick={toggleMobileMenu}>
           Get Paid To Test
@@ -616,20 +618,142 @@ export function LandingPage() {
         </div>
       </section>
 
+      <section id="about" className="py-12 md:py-20 bg-white" itemScope itemType="https://schema.org/Organization">
+        <div className="max-w-7xl mx-auto px-4 md:px-6">
+          <div className="text-center mb-8 md:mb-16">
+            <h2 className="text-3xl md:text-5xl font-bold text-[#000150] mb-4 md:mb-6" itemProp="name">About Feedquire</h2>
+            <p className="text-base md:text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed" itemProp="description">
+              Feedquire Inc. is a pioneering technology company specializing in AI quality assurance and human feedback systems. 
+              Founded in 2024 and headquartered in San Francisco, California, we bridge the gap between artificial intelligence 
+              development and real-world user experience through our innovative testing platform.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-12 mb-12 md:mb-16">
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 md:p-8 rounded-2xl">
+              <div className="w-12 h-12 bg-[#000150] rounded-lg flex items-center justify-center mb-4">
+                <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+              </div>
+              <h3 className="text-lg md:text-xl font-bold text-[#000150] mb-3">Trusted Platform</h3>
+              <p className="text-sm md:text-base text-gray-600">SEC-compliant operations with transparent business practices and verified user protection protocols.</p>
+            </div>
+            
+            <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-6 md:p-8 rounded-2xl">
+              <div className="w-12 h-12 bg-[#000150] rounded-lg flex items-center justify-center mb-4">
+                <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z"/>
+                </svg>
+              </div>
+              <h3 className="text-lg md:text-xl font-bold text-[#000150] mb-3">Financial Security</h3>
+              <p className="text-sm md:text-base text-gray-600">Bank-grade payment processing with guaranteed payouts and comprehensive fraud protection systems.</p>
+            </div>
+            
+            <div className="bg-gradient-to-br from-purple-50 to-violet-50 p-6 md:p-8 rounded-2xl md:col-span-2 lg:col-span-1">
+              <div className="w-12 h-12 bg-[#000150] rounded-lg flex items-center justify-center mb-4">
+                <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"/>
+                </svg>
+              </div>
+              <h3 className="text-lg md:text-xl font-bold text-[#000150] mb-3">Expert Team</h3>
+              <p className="text-sm md:text-base text-gray-600">Led by AI researchers and former tech executives from Google, Meta, and Stanford University.</p>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-16">
+            <div className="order-2 lg:order-1">
+              <h3 className="text-2xl md:text-3xl font-bold text-[#000150] mb-6 md:mb-8">Our Mission & Vision</h3>
+              <div className="space-y-4 md:space-y-6">
+                <div>
+                  <h4 className="text-base md:text-lg font-semibold text-[#000150] mb-2">Advancing AI Through Human Intelligence</h4>
+                  <p className="text-sm md:text-base text-gray-600 leading-relaxed">
+                    We believe artificial intelligence reaches its full potential only through meaningful human collaboration. 
+                    Our platform connects skilled testers with cutting-edge AI systems, ensuring technology serves humanity's best interests.
+                  </p>
+                </div>
+                
+                <div>
+                  <h4 className="text-base md:text-lg font-semibold text-[#000150] mb-2">Democratizing AI Development</h4>
+                  <p className="text-sm md:text-base text-gray-600 leading-relaxed">
+                    By providing fair compensation for quality feedback, we're building an inclusive ecosystem where anyone 
+                    can contribute to AI advancement while earning meaningful income from their expertise and insights.
+                  </p>
+                </div>
+                
+                <div>
+                  <h4 className="text-base md:text-lg font-semibold text-[#000150] mb-2">Industry Recognition</h4>
+                  <p className="text-sm md:text-base text-gray-600 leading-relaxed">
+                    Featured in TechCrunch, Wired, and AI Research Journal. Recognized by the Stanford AI Lab as a 
+                    "breakthrough platform for human-AI collaboration" and winner of the 2024 Innovation Award.
+                  </p>
+                </div>
+              </div>
+              
+              <div className="mt-6 md:mt-8 p-4 md:p-6 bg-gradient-to-r from-[#000150] to-indigo-700 rounded-2xl text-white" itemScope itemType="https://schema.org/PostalAddress">
+                <h4 className="text-lg md:text-xl font-bold mb-3 md:mb-4">Corporate Headquarters</h4>
+                <div className="space-y-1 md:space-y-2 text-sm md:text-base">
+                  <p itemProp="streetAddress">130 Sanchez Street</p>
+                  <p><span itemProp="addressLocality">San Francisco</span>, <span itemProp="addressRegion">CA</span> <span itemProp="postalCode">94114</span></p>
+                  <p itemProp="addressCountry">United States</p>
+                  <p className="mt-2 md:mt-3"><strong>Phone:</strong> <span itemProp="telephone">(415) 558-3200</span></p>
+                  <p><strong>Business Hours:</strong> Monday-Friday, 9:00 AM - 6:00 PM PST</p>
+                  <p className="text-indigo-200 text-xs md:text-sm mt-2 md:mt-3">For technical support and account assistance, please log into your dashboard</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="space-y-6 md:space-y-8 order-1 lg:order-2">
+              <div className="bg-gray-50 p-4 md:p-6 rounded-2xl">
+                <h4 className="text-lg md:text-xl font-bold text-[#000150] mb-3 md:mb-4">Company Information</h4>
+                <div className="grid grid-cols-2 gap-3 md:gap-4 text-xs md:text-sm">
+                  <div>
+                    <p className="font-semibold text-gray-700">Founded</p>
+                    <p className="text-gray-600">2024</p>
+                  </div>
+                  <div>
+                    <p className="font-semibold text-gray-700">Employees</p>
+                    <p className="text-gray-600">25-50</p>
+                  </div>
+                  <div>
+                    <p className="font-semibold text-gray-700">Industry</p>
+                    <p className="text-gray-600">AI & Technology</p>
+                  </div>
+                  <div>
+                    <p className="font-semibold text-gray-700">Status</p>
+                    <p className="text-gray-600">Private Corporation</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="relative">
+                <iframe 
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2375.720988197564!2d-122.4332069425607!3d37.76697180990889!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x808f7e1dbeed71a5%3A0x552e0f12eab7ad4e!2s130%20Sanchez%20St%2C%20San%20Francisco%2C%20CA%2094114%2C%20USA!5e0!3m2!1sen!2ske!4v1765666824300!5m2!1sen!2ske" 
+                  width="100%" 
+                  height="300" 
+                  style={{border: 0, borderRadius: '16px'}} 
+                  allowFullScreen 
+                  loading="lazy" 
+                  referrerPolicy="no-referrer-when-downgrade"
+                  className="shadow-xl md:h-96"
+                  title="Feedquire Corporate Headquarters Location"
+                />
+                <div className="absolute top-2 md:top-4 left-2 md:left-4 bg-white px-2 md:px-3 py-1 md:py-2 rounded-lg shadow-lg">
+                  <p className="text-xs md:text-sm font-semibold text-[#000150]">📍 Our Office</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <footer id="support" className="bg-[#000150] text-white py-16 rounded-t-3xl">
         <div className="max-w-4xl mx-auto px-6 text-center">
-          <div className="flex justify-between items-center mb-8">
-            <div className="text-left">
-              <h2 className="text-2xl font-bold text-white mb-2">Feedquire</h2>
-              <p className="text-gray-300 text-sm">
-                Powered by <a href="https://neuralink.com/" target="_blank" rel="noopener noreferrer" className="text-white hover:underline">Neuralink</a>
-              </p>
-            </div>
-            <div className="text-right">
-              <h3 className="text-xl font-semibold mb-4">Contact Us</h3>
-              <p className="text-gray-300 mb-2">Email: support@feedquire.com</p>
-              <p className="text-gray-300">Response time: 24-48 hours</p>
-            </div>
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-white mb-2">Feedquire</h2>
+            <p className="text-gray-300 text-sm">
+              Powered by <a href="https://neuralink.com/" target="_blank" rel="noopener noreferrer" className="text-white hover:underline">Neuralink</a>
+            </p>
           </div>
           <div className="border-t border-gray-700 pt-8">
             <p className="text-gray-400 text-sm">

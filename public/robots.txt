@@ -1,14 +1,29 @@
 User-agent: *
 Allow: /
-Allow: /signup
-Allow: /login
-Allow: /blog
-Disallow: /dashboard
-Disallow: /tasks
-Disallow: /submissions
-Disallow: /profile
-Disallow: /payments
-Disallow: /account
-Disallow: /control
 
+# Sitemap
 Sitemap: https://www.feedquire.com/sitemap.xml
+
+# Crawl-delay for respectful crawling
+Crawl-delay: 1
+
+# Allow all major search engines
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Slurp
+Allow: /
+
+# Block access to admin areas
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /api/
+
+# Company information
+# Feedquire Inc.
+# 130 Sanchez Street, San Francisco, CA 94114
+# Phone: (415) 558-3200
+# Founded: 2024
