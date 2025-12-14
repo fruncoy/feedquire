@@ -99,3 +99,14 @@ export interface UserAssessment {
   created_at: string;
   updated_at: string;
 }
+
+export interface Ticket {
+  id: string;
+  user_id: string;
+  title: string;
+  description: string;
+  status: 'pending' | 'resolved';
+  admin_reply: string | null;
+  created_at: string;
+  updated_at: string;
+}

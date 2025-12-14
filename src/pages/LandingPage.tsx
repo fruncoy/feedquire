@@ -696,7 +696,7 @@ export function LandingPage() {
                   <p itemProp="streetAddress">130 Sanchez Street</p>
                   <p><span itemProp="addressLocality">San Francisco</span>, <span itemProp="addressRegion">CA</span> <span itemProp="postalCode">94114</span></p>
                   <p itemProp="addressCountry">United States</p>
-                  <p className="mt-2 md:mt-3"><strong>Phone:</strong> <span itemProp="telephone">(415) 558-3200</span></p>
+                  <p className="mt-2 md:mt-3"><strong>Phone:</strong> <span itemProp="telephone">(415) 555-3200</span></p>
                   <p><strong>Business Hours:</strong> Monday-Friday, 9:00 AM - 6:00 PM PST</p>
                   <p className="text-indigo-200 text-xs md:text-sm mt-2 md:mt-3">For technical support and account assistance, please log into your dashboard</p>
                 </div>
@@ -754,6 +754,14 @@ export function LandingPage() {
             <p className="text-gray-300 text-sm">
               Powered by <a href="https://neuralink.com/" target="_blank" rel="noopener noreferrer" className="text-white hover:underline">Neuralink</a>
             </p>
+          </div>
+          <div className="flex justify-center gap-6 mb-6">
+            <Link to="/privacy-policy" className="text-gray-300 hover:text-white text-sm transition-colors">
+              Privacy Policy
+            </Link>
+            <Link to="/terms-of-service" className="text-gray-300 hover:text-white text-sm transition-colors">
+              Terms of Service
+            </Link>
           </div>
           <div className="border-t border-gray-700 pt-8">
             <p className="text-gray-400 text-sm">

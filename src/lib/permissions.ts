@@ -44,7 +44,6 @@ export class PermissionService {
   static async isAdmin(): Promise<boolean> {
     try {
       const { profile } = await this.getCurrentUser();
-      // Obfuscate admin role check
       return profile?.role === 'system_operator';
     } catch {
       return false;

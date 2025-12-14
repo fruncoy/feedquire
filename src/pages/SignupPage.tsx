@@ -202,7 +202,7 @@ export function SignupPage() {
         </p>
 
         <p className="text-xs text-gray-500 text-center mt-8 mb-4">
-          By signing up, you agree to our Terms of Service and acknowledge our Privacy Policy
+          By signing up, you agree to our <Link to="/terms-of-service" className="text-gray-700 hover:underline">Terms of Service</Link> and acknowledge our <Link to="/privacy-policy" className="text-gray-700 hover:underline">Privacy Policy</Link>
         </p>
         </div>
       </div>

@@ -18,12 +18,12 @@ User-agent: Slurp
 Allow: /
 
 # Block access to admin areas
-Disallow: /admin/
+Disallow: /control/
 Disallow: /dashboard/
 Disallow: /api/
 
 # Company information
 # Feedquire Inc.
 # 130 Sanchez Street, San Francisco, CA 94114
-# Phone: (415) 558-3200
+# Phone: (415) 555-3200
 # Founded: 2024

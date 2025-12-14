@@ -19,36 +19,49 @@ export function AdminUsersPage() {
 
   const fetchUsers = async () => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .neq('role', 'admin')
-        .order('created_at', { ascending: false });
+      // Fetch users and their submission stats in parallel
+      const [usersResult, submissionsResult] = await Promise.all([
+        supabase
+          .from('profiles')
+          .select('*')
+          .neq('role', 'admin')
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('feedback_submissions')
+          .select('user_id, status, amount_earned')
+      ]);
 
-      if (error) throw error;
-      setUsers(data || []);
+      if (usersResult.error) throw usersResult.error;
+      setUsers(usersResult.data || []);
       
-      // Fetch submission stats for each user
-      if (data) {
+      // Process submission stats
+      if (usersResult.data && submissionsResult.data) {
         const stats: Record<string, any> = {};
-        for (const user of data) {
-          const { data: submissions } = await supabase
-            .from('feedback_submissions')
-            .select('status, amount_earned')
-            .eq('user_id', user.user_id);
-          
-          const totalSubmissions = submissions?.length || 0;
-          const approvedCount = submissions?.filter(s => s.status === 'approved' || s.status === 'paid').length || 0;
-          const rejectedCount = submissions?.filter(s => s.status === 'rejected').length || 0;
-          const totalEarned = submissions?.reduce((sum, s) => sum + (s.amount_earned || 0), 0) || 0;
-          
+        
+        // Initialize stats for all users
+        usersResult.data.forEach(user => {
           stats[user.user_id] = {
-            totalSubmissions,
-            approvedCount,
-            rejectedCount,
-            totalEarned
+            totalSubmissions: 0,
+            approvedCount: 0,
+            rejectedCount: 0,
+            totalEarned: 0
           };
-        }
+        });
+        
+        // Aggregate submission data
+        submissionsResult.data.forEach(submission => {
+          if (stats[submission.user_id]) {
+            stats[submission.user_id].totalSubmissions++;
+            if (submission.status === 'approved' || submission.status === 'paid') {
+              stats[submission.user_id].approvedCount++;
+            }
+            if (submission.status === 'rejected') {
+              stats[submission.user_id].rejectedCount++;
+            }
+            stats[submission.user_id].totalEarned += submission.amount_earned || 0;
+          }
+        });
+        
         setUserStats(stats);
       }
     } catch (err) {
@@ -163,15 +176,38 @@ export function AdminUsersPage() {
   if (loading) {
     return (
       <DashboardLayout>
-        <div className="bg-white border-b border-gray-200 rounded-br-lg">
-          <div className="px-6 py-6 h-20 flex flex-col justify-center">
-            <h1 className="text-2xl font-semibold text-gray-900">Loading...</h1>
-          </div>
-        </div>
         <div className="p-6">
-          <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
-            <div className="w-8 h-8 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading users...</p>
+          <div className="space-y-8">
+            {Array.from({ length: 3 }).map((_, sectionIdx) => (
+              <div key={sectionIdx}>
+                <div className="h-6 bg-gray-200 rounded w-32 mb-4 animate-pulse"></div>
+                <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User Name</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Join Date</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {Array.from({ length: 3 }).map((_, idx) => (
+                          <tr key={idx} className="animate-pulse">
+                            <td className="px-6 py-4">
+                              <div className="h-4 bg-gray-200 rounded w-24 mb-1"></div>
+                              <div className="h-3 bg-gray-200 rounded w-16"></div>
+                            </td>
+                            <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-32"></div></td>
+                            <td className="px-6 py-4"><div className="h-8 bg-gray-200 rounded w-8"></div></td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </DashboardLayout>
@@ -182,11 +218,6 @@ export function AdminUsersPage() {
     const badge = getStatusBadge(selectedUser.account_status);
     return (
       <DashboardLayout>
-        <div className="bg-white border-b border-gray-200 sticky top-0 z-30">
-          <div className="px-6 py-6 h-20 flex flex-col justify-center">
-            <h1 className="text-2xl font-semibold text-gray-900">User Details</h1>
-          </div>
-        </div>
         <div className="p-6">
           <div className="max-w-2xl mx-auto">
           <button
@@ -254,80 +285,79 @@ export function AdminUsersPage() {
     );
   }
 
-  return (
-    <DashboardLayout>
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-30">
-        <div className="px-6 py-6 h-20 flex flex-col justify-center">
-          <h1 className="text-2xl font-semibold text-gray-900">Manage Users</h1>
+  const tier3Users = users.filter(u => u.account_status === '2hF2kQ7rD5xVfM1tZ' && u.role !== 'system_operator').sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  const tier2Users = users.filter(u => u.account_status === '1Q3bF8vL1nT9pB6wR' && u.role !== 'system_operator').sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  const tier1Users = users.filter(u => u.account_status === 'a7F9xQ2mP6kM4rT5' && u.role !== 'system_operator').sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+  const renderUserTable = (users: any[], title: string) => (
+    <div className="mb-8">
+      <h2 className="text-xl font-semibold text-gray-900 mb-4">{title} ({users.length})</h2>
+      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User Name</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Join Date</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {users.map((user) => {
+                const badge = getStatusBadge(user.account_status);
+                const stats = userStats[user.user_id] || { totalSubmissions: 0, approvedCount: 0, rejectedCount: 0, totalEarned: 0 };
+                return (
+                  <tr key={user.user_id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      {user.full_name || 'User'}
+                      <br />
+                      <span className="text-xs text-gray-500">
+                        {stats.totalSubmissions} submissions
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {new Date(user.created_at).toLocaleDateString('en-GB', { 
+                        weekday: 'short', 
+                        day: 'numeric', 
+                        month: 'long', 
+                        year: 'numeric',
+                        timeZone: 'Africa/Nairobi'
+                      }).replace(/,/g, ',').replace(/(\d+)/, '$1th')}
+                      <br />
+                      <span className="text-xs text-gray-500">
+                        {new Date(user.created_at).toLocaleTimeString('en-US', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          hour12: true,
+                          timeZone: 'Africa/Nairobi'
+                        })}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <button
+                        onClick={() => navigate(`/control/accounts/${user.user_id}`)}
+                        className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                        title="View Profile"
+                      >
+                        <Eye size={14} />
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       </div>
+    </div>
+  );
+
+  return (
+    <DashboardLayout>
       <div className="p-6">
-
-
-        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User Name</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Account Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Submissions</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Approved / Rejected Count</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Earned</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {users.map((user) => {
-                  const badge = getStatusBadge(user.account_status);
-                  const stats = userStats[user.user_id] || { totalSubmissions: 0, approvedCount: 0, rejectedCount: 0, totalEarned: 0 };
-                  return (
-                    <tr key={user.user_id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {user.full_name || 'User'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`${badge.bg} ${badge.text} px-3 py-1 rounded-full text-sm font-medium`}>
-                          {badge.label}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {stats.totalSubmissions}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        <span className="text-green-600">{stats.approvedCount}</span> / <span className="text-red-600">{stats.rejectedCount}</span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        ${stats.totalEarned.toFixed(2)}
-                      </td>
-
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => navigate(`/control/accounts/${user.user_id}`)}
-                            className="inline-flex items-center gap-1 px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium"
-                          >
-                            <Eye size={14} />
-                            View Profile
-                          </button>
-
-                          <button
-                            onClick={() => handleDeleteUser(user.user_id)}
-                            disabled={updating}
-                            className="inline-flex items-center gap-1 px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition text-sm font-medium disabled:opacity-50"
-                          >
-                            <XCircle size={14} />
-                            Delete
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        {renderUserTable(tier3Users, 'Tier 3 Users')}
+        {renderUserTable(tier2Users, 'Tier 2 Users')}
+        {renderUserTable(tier1Users, 'Tier 1 Users')}
       </div>
     </DashboardLayout>
   );

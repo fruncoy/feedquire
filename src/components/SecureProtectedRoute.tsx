@@ -18,6 +18,10 @@ export function SecureProtectedRoute({ children, requireFeature }: SecureProtect
   }, [user, requireFeature]);
 
   const checkPermissions = async () => {
+    if (authLoading) {
+      return; // Don't check permissions while auth is still loading
+    }
+    
     if (!user) {
       setHasPermission(false);
       setLoading(false);

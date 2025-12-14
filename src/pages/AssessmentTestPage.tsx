@@ -113,23 +113,23 @@ export function AssessmentTestPage() {
 
       if (submissionError) throw submissionError;
 
-      // Only save the last question's response
+      // Save the last question's response
       const allQuestions = Object.values(sections).flatMap(section => section.questions);
       const lastQuestion = allQuestions[allQuestions.length - 1];
-      const lastResponse = responses[lastQuestion?.id];
       
-      if (lastResponse?.trim()) {
-        const { error: responsesError } = await supabase
-          .from('submission_responses')
-          .upsert({
-            submission_id: submission.id,
-            question_id: lastQuestion.id,
-            response_text: lastResponse,
-          }, {
-            onConflict: 'submission_id,question_id'
-          });
-        
-        if (responsesError) throw responsesError;
+      if (lastQuestion) {
+        const lastResponse = responses[lastQuestion.id];
+        if (lastResponse?.trim()) {
+          await supabase
+            .from('submission_responses')
+            .upsert({
+              submission_id: submission.id,
+              question_id: lastQuestion.id,
+              response_text: lastResponse.trim(),
+            }, {
+              onConflict: 'submission_id,question_id'
+            });
+        }
       }
 
       await supabase

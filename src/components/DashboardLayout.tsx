@@ -2,7 +2,7 @@ import { ReactNode, useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { usePermissions } from '../hooks/usePermissions';
-import { LogOut, Home, CheckSquare, FileText, User, CreditCard, Users, Package, ClipboardList, Crown, Trash2 } from 'lucide-react';
+import { LogOut, Home, CheckSquare, FileText, User, CreditCard, Users, Package, ClipboardList, Crown, Trash2, MessageSquare, Ticket } from 'lucide-react';
 import { Logo } from './Logo';
 import { HelpButton } from './HelpButton';
 
@@ -35,6 +35,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     { path: '/control/accounts', icon: Users, label: 'Accounts' },
     { path: '/control/systems', icon: Package, label: 'Systems' },
     { path: '/control/reports', icon: ClipboardList, label: 'Reports' },
+    { path: '/control/tickets', icon: MessageSquare, label: 'Tickets' },
     { path: '/control/cleanup', icon: Trash2, label: 'Cleanup' },
   ] : [
     { path: '/dashboard', icon: Home, label: 'Dashboard' },
@@ -42,6 +43,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     { path: '/submissions', icon: FileText, label: 'Submissions' },
     { path: '/profile', icon: User, label: 'Profile' },
     { path: '/payments', icon: CreditCard, label: 'Payments' },
+    { path: '/submit-ticket', icon: Ticket, label: 'Submit Ticket' },
   ];
 
   return (

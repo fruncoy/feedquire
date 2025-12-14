@@ -6,7 +6,6 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { RoleBasedRedirect } from './components/RoleBasedRedirect';
 
 import { LoginPage } from './pages/LoginPage';
-
 import { SignupPage } from './pages/SignupPage';
 import { VerifyPaymentPage } from './pages/VerifyPaymentPage';
 import { AssessmentTestPage } from './pages/AssessmentTestPage';
@@ -32,6 +31,10 @@ import { PendingApprovalPage } from './pages/PendingApprovalPage';
 import { ProSuccessPage } from './pages/ProSuccessPage';
 import { BlogPage } from './pages/BlogPage';
 import { BlogArticlePage } from './pages/BlogArticlePage';
+import { SubmitTicketPage } from './pages/SubmitTicketPage';
+import { AdminTicketsPage } from './pages/AdminTicketsPage';
+import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
+import { TermsOfServicePage } from './pages/TermsOfServicePage';
 import { SecureProtectedRoute } from './components/SecureProtectedRoute';
 
 function App() {
@@ -206,6 +209,15 @@ function App() {
           />
 
           <Route
+            path="/control/tickets"
+            element={
+              <SecureProtectedRoute requireFeature="admin">
+                <AdminTicketsPage />
+              </SecureProtectedRoute>
+            }
+          />
+
+          <Route
             path="/control/cleanup"
             element={
               <SecureProtectedRoute requireFeature="admin">
@@ -214,8 +226,19 @@ function App() {
             }
           />
 
+          <Route
+            path="/submit-ticket"
+            element={
+              <ProtectedRoute>
+                <SubmitTicketPage />
+              </ProtectedRoute>
+            }
+          />
+
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/blog/:slug" element={<BlogArticlePage />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+          <Route path="/terms-of-service" element={<TermsOfServicePage />} />
           <Route path="/unauthorized" element={<UnauthorizedPage />} />
           <Route path="/home" element={<RoleBasedRedirect />} />
           <Route path="/" element={<LandingPage />} />

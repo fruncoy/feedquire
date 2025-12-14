@@ -125,15 +125,34 @@ export function AdminPlatformsPage() {
   if (loading) {
     return (
       <DashboardLayout>
-        <div className="bg-white border-b border-gray-200 rounded-br-lg">
-          <div className="px-6 py-6 h-20 flex flex-col justify-center">
-            <h1 className="text-2xl font-semibold text-gray-900">Loading...</h1>
-          </div>
-        </div>
         <div className="p-6">
-          <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
-            <div className="w-8 h-8 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading platforms...</p>
+          <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Domain</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pay Rate</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Submissions</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {Array.from({ length: 4 }).map((_, idx) => (
+                    <tr key={idx} className="animate-pulse">
+                      <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-32"></div></td>
+                      <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-48"></div></td>
+                      <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-12"></div></td>
+                      <td className="px-6 py-4"><div className="h-6 bg-gray-200 rounded-full w-16"></div></td>
+                      <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-20"></div></td>
+                      <td className="px-6 py-4"><div className="h-8 bg-gray-200 rounded w-16"></div></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </DashboardLayout>
@@ -142,9 +161,8 @@ export function AdminPlatformsPage() {
 
   return (
     <DashboardLayout>
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-30">
-        <div className="px-6 py-6 h-20 flex items-center justify-between">
-          <h1 className="text-2xl font-semibold text-gray-900">AI Platforms</h1>
+      <div className="p-6">
+        <div className="flex justify-end mb-6">
           <button
             onClick={() => {
               setShowForm(!showForm);
@@ -157,8 +175,6 @@ export function AdminPlatformsPage() {
             Add Platform
           </button>
         </div>
-      </div>
-      <div className="p-6">
 
         {showForm && (
           <form onSubmit={handleAddPlatform} className="bg-gray-50 rounded-lg border border-gray-200 p-6 mb-8">

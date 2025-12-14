@@ -14,13 +14,12 @@ export function AdminDashboard() {
     tier2Users: 0,
     tier3Users: 0,
     totalReceived: 0,
-    totalPlatforms: 0,
-    unqualifiedUsers: 0,
+
+
     pendingSubmissions: 0,
     approvedSubmissions: 0,
     rejectedSubmissions: 0,
-    totalPaidOut: 0,
-    pendingPayments: 0,
+
   });
   const [loading, setLoading] = useState(true);
 
@@ -30,89 +29,43 @@ export function AdminDashboard() {
 
   const fetchStats = async () => {
     try {
-      // Total users
-      const { count: usersCount } = await supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true });
+      // Fetch all data in parallel for better performance
+      const [
+        usersResult,
+        tier1Result,
+        tier2Result,
+        tier3Result,
 
-      // Users by tier
-      const { count: tier1Count } = await supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true })
-        .eq('account_status', 'tier1');
 
-      const { count: tier2Count } = await supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true })
-        .eq('account_status', 'tier2');
+        pendingResult,
+        approvedResult,
+        rejectedSubResult
+      ] = await Promise.all([
+        supabase.from('profiles').select('*', { count: 'exact', head: true }).neq('role', 'system_operator'),
+        supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('account_status', 'a7F9xQ2mP6kM4rT5').neq('role', 'system_operator'),
+        supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('account_status', '1Q3bF8vL1nT9pB6wR').neq('role', 'system_operator'),
+        supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('account_status', '2hF2kQ7rD5xVfM1tZ').neq('role', 'system_operator'),
 
-      const { count: tier3Count } = await supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true })
-        .eq('account_status', 'tier3');
 
-      // Unqualified users (rejected)
-      const { count: unqualifiedCount } = await supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true })
-        .eq('account_status', 'rejected');
+        supabase.from('feedback_submissions').select('*', { count: 'exact', head: true }).eq('status', 'submitted'),
+        supabase.from('feedback_submissions').select('*', { count: 'exact', head: true }).eq('status', 'approved'),
+supabase.from('feedback_submissions').select('*', { count: 'exact', head: true }).eq('status', 'rejected')
+      ]);
 
-      // Total platforms
-      const { count: platformsCount } = await supabase
-        .from('ai_platforms')
-        .select('*', { count: 'exact', head: true });
-
-      // Submissions by status
-      const { count: pendingCount } = await supabase
-        .from('feedback_submissions')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'submitted')
-        .neq('status', 'in_progress');
-
-      const { count: approvedCount } = await supabase
-        .from('feedback_submissions')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'approved')
-        .neq('status', 'in_progress');
-
-      const { count: rejectedCount } = await supabase
-        .from('feedback_submissions')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'rejected')
-        .neq('status', 'in_progress');
-
-      // Payment calculations
-      const { data: paidSubmissions } = await supabase
-        .from('feedback_submissions')
-        .select('amount_earned')
-        .eq('status', 'paid')
-        .neq('status', 'in_progress');
-
-      const { data: pendingPaymentSubmissions } = await supabase
-        .from('feedback_submissions')
-        .select('amount_earned')
-        .eq('status', 'approved')
-        .neq('status', 'in_progress');
-
-      const totalPaidOut = paidSubmissions?.reduce((sum, s) => sum + (s.amount_earned || 0), 0) || 0;
-      const pendingPayments = pendingPaymentSubmissions?.reduce((sum, s) => sum + (s.amount_earned || 0), 0) || 0;
-
-      // Total received from tier2 verification (assuming $1 per tier2 user)
-      const totalReceived = (tier2Count || 0) + (tier3Count || 0);
+      const totalReceived = ((tier2Result.count || 0) + (tier3Result.count || 0)) * 130;
 
       setStats({
-        totalUsers: usersCount || 0,
-        tier1Users: tier1Count || 0,
-        tier2Users: tier2Count || 0,
-        tier3Users: tier3Count || 0,
+        totalUsers: usersResult.count || 0,
+        tier1Users: tier1Result.count || 0,
+        tier2Users: tier2Result.count || 0,
+        tier3Users: tier3Result.count || 0,
         totalReceived,
-        totalPlatforms: platformsCount || 0,
-        unqualifiedUsers: unqualifiedCount || 0,
-        pendingSubmissions: pendingCount || 0,
-        approvedSubmissions: approvedCount || 0,
-        rejectedSubmissions: rejectedCount || 0,
-        totalPaidOut,
-        pendingPayments,
+
+
+        pendingSubmissions: pendingResult.count || 0,
+        approvedSubmissions: approvedResult.count || 0,
+        rejectedSubmissions: rejectedSubResult.count || 0,
+
       });
     } catch (err) {
       console.error('Error fetching stats:', err);
@@ -157,25 +110,13 @@ export function AdminDashboard() {
     },
     {
       label: 'Total Received (from tier2 user verification)',
-      value: `$${stats.totalReceived.toFixed(2)}`,
+      value: `${stats.totalReceived} KSh`,
       icon: TrendingUp,
       color: 'bg-emerald-50',
       textColor: 'text-emerald-700',
     },
-    {
-      label: 'AI Platforms',
-      value: stats.totalPlatforms,
-      icon: Package,
-      color: 'bg-purple-50',
-      textColor: 'text-purple-700',
-    },
-    {
-      label: 'Unqualified Users (Who Admin marked Lost, From tier3)',
-      value: stats.unqualifiedUsers,
-      icon: Users,
-      color: 'bg-red-50',
-      textColor: 'text-red-700',
-    },
+
+
     {
       label: 'Pending Submissions',
       value: stats.pendingSubmissions,
@@ -197,49 +138,42 @@ export function AdminDashboard() {
       color: 'bg-red-50',
       textColor: 'text-red-700',
     },
-    {
-      label: 'Total Paid Out',
-      value: `$${stats.totalPaidOut.toFixed(2)}`,
-      icon: TrendingUp,
-      color: 'bg-emerald-50',
-      textColor: 'text-emerald-700',
-    },
-    {
-      label: 'Pending Payments',
-      value: `$${stats.pendingPayments.toFixed(2)}`,
-      icon: TrendingUp,
-      color: 'bg-orange-50',
-      textColor: 'text-orange-700',
-    },
+
   ];
 
   return (
     <DashboardLayout>
-      {/* Fixed Header */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-30">
-        <div className="px-6 py-6 h-20 flex flex-col justify-center">
-          <h1 className="text-2xl font-semibold text-gray-900">Admin Dashboard</h1>
-        </div>
-      </div>
-
       <div className="p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-12">
-          {statCards.map((stat, idx) => {
-            const Icon = stat.icon;
-            return (
-              <div key={idx} className={`${stat.color} rounded-lg border border-gray-200 p-6`}>
+          {loading ? (
+            // Skeleton loading
+            Array.from({ length: 8 }).map((_, idx) => (
+              <div key={idx} className="bg-gray-50 rounded-lg border border-gray-200 p-6 animate-pulse">
                 <div className="flex items-start gap-4 mb-4">
-                  <div className={`${stat.textColor} p-2 rounded-lg bg-white`}>
-                    <Icon size={20} />
-                  </div>
+                  <div className="w-12 h-12 bg-gray-200 rounded-lg"></div>
                 </div>
-                <p className="text-sm text-gray-600 font-medium">{stat.label}</p>
-                <p className={`text-3xl font-semibold ${stat.textColor} mt-2`}>
-                  {loading ? '-' : stat.value}
-                </p>
+                <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                <div className="h-8 bg-gray-200 rounded w-16"></div>
               </div>
-            );
-          })}
+            ))
+          ) : (
+            statCards.map((stat, idx) => {
+              const Icon = stat.icon;
+              return (
+                <div key={idx} className={`${stat.color} rounded-lg border border-gray-200 p-6`}>
+                  <div className="flex items-start gap-4 mb-4">
+                    <div className={`${stat.textColor} p-2 rounded-lg bg-white`}>
+                      <Icon size={20} />
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-600 font-medium">{stat.label}</p>
+                  <p className={`text-3xl font-semibold ${stat.textColor} mt-2`}>
+                    {stat.value}
+                  </p>
+                </div>
+              );
+            })
+          )}
         </div>
 
 

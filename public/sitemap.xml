@@ -82,4 +82,18 @@
   <changefreq>monthly</changefreq>
 </url>
 
+<url>
+  <loc>https://www.feedquire.com/privacy-policy</loc>
+  <lastmod>2024-12-04T12:00:00+00:00</lastmod>
+  <priority>0.5</priority>
+  <changefreq>yearly</changefreq>
+</url>
+
+<url>
+  <loc>https://www.feedquire.com/terms-of-service</loc>
+  <lastmod>2024-12-04T12:00:00+00:00</lastmod>
+  <priority>0.5</priority>
+  <changefreq>yearly</changefreq>
+</url>
+
 </urlset>

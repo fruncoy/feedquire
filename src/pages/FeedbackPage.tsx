@@ -162,21 +162,21 @@ export function FeedbackPage() {
         newSubmission = data;
       }
 
-      // Only save the last question's response (like assessment)
+      // Save the last question's response
       const allQuestions = Object.values(sections).flatMap(section => section.questions);
       const lastQuestion = allQuestions[allQuestions.length - 1];
-      const lastResponse = responses[lastQuestion?.id];
       
-      if (lastResponse?.trim()) {
-        const { error: responseError } = await supabase
-          .from('submission_responses')
-          .insert({
-            submission_id: newSubmission.id,
-            question_id: lastQuestion.id,
-            response_text: lastResponse,
-          });
-        
-        if (responseError) throw responseError;
+      if (lastQuestion) {
+        const lastResponse = responses[lastQuestion.id];
+        if (lastResponse?.trim()) {
+          await supabase
+            .from('submission_responses')
+            .insert({
+              submission_id: newSubmission.id,
+              question_id: lastQuestion.id,
+              response_text: lastResponse.trim(),
+            });
+        }
       }
 
       navigate('/pending-approval');
