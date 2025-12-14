@@ -166,18 +166,42 @@ export function FeedbackPage() {
       const allQuestions = Object.values(sections).flatMap(section => section.questions);
       const lastQuestion = allQuestions[allQuestions.length - 1];
       
+      console.log('=== DEBUG FEEDBACK SUBMISSION ===');
+      console.log('Total questions:', allQuestions.length);
+      console.log('Last question:', lastQuestion);
+      console.log('All responses:', responses);
+      console.log('Submission ID:', newSubmission.id);
+      
       if (lastQuestion) {
         const lastResponse = responses[lastQuestion.id];
+        console.log('Last question ID:', lastQuestion.id);
+        console.log('Last response:', lastResponse);
+        console.log('Last response trimmed:', lastResponse?.trim());
+        
         if (lastResponse?.trim()) {
-          await supabase
+          console.log('Attempting to save response...');
+          const { data, error } = await supabase
             .from('submission_responses')
             .insert({
               submission_id: newSubmission.id,
               question_id: lastQuestion.id,
               response_text: lastResponse.trim(),
-            });
+            })
+            .select();
+          
+          console.log('Save result:', { data, error });
+          if (error) {
+            console.error('Response save failed:', error);
+          } else {
+            console.log('Response saved successfully:', data);
+          }
+        } else {
+          console.log('No response to save - empty or null');
         }
+      } else {
+        console.log('No last question found');
       }
+      console.log('=== END DEBUG ===');
 
       navigate('/pending-approval');
     } catch (err: any) {
