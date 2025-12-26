@@ -8,7 +8,6 @@ export function ProSuccessPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    MetaPixelEvents.purchase(13, 'USD', 'Pro Upgrade');
     MetaPixelEvents.viewContent('Pro Success Page', 'success_page');
     
     const timer = setTimeout(() => {
