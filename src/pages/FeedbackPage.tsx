@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase';
 import { AIPlatform, FeedbackQuestion, FeedbackSubmission } from '../types';
 import { ChevronRight, ChevronLeft, CheckCircle2, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import { DashboardLayout } from '../components/DashboardLayout';
+import { MetaPixelEvents } from '../lib/metaPixel';
 
 export function FeedbackPage() {
   const { platformId } = useParams<{ platformId: string }>();
@@ -202,6 +203,11 @@ export function FeedbackPage() {
         console.log('No last question found');
       }
       console.log('=== END DEBUG ===');
+
+      if (platform) {
+        MetaPixelEvents.taskCompleted(platform.domain, platform.amount_per_submission);
+        MetaPixelEvents.lead(`Task Submission: ${platform.domain}`, platform.amount_per_submission);
+      }
 
       navigate('/pending-approval');
     } catch (err: any) {

@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { Logo } from '../components/Logo';
 import homeImg from '../assets/home.png';
 import { CheckCircle, ArrowLeft, Eye, EyeOff } from 'lucide-react';
+import { MetaPixelEvents } from '../lib/metaPixel';
 
 export function SignupPage() {
   const [name, setName] = useState('');
@@ -49,6 +50,7 @@ export function SignupPage() {
 
     try {
       await signUp(name, email, password, phone);
+      MetaPixelEvents.completeRegistration('email');
       setShowSuccess(true);
       setLoading(false);
       setTimeout(() => {

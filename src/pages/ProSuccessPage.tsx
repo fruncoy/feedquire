@@ -2,11 +2,15 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '../components/DashboardLayout';
 import { CheckCircle } from 'lucide-react';
+import { MetaPixelEvents } from '../lib/metaPixel';
 
 export function ProSuccessPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    MetaPixelEvents.purchase(13, 'USD', 'Pro Upgrade');
+    MetaPixelEvents.viewContent('Pro Success Page', 'success_page');
+    
     const timer = setTimeout(() => {
       navigate('/dashboard');
     }, 10000);

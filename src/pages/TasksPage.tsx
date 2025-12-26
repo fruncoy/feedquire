@@ -6,6 +6,7 @@ import { usePermissions } from '../hooks/usePermissions';
 import { supabase } from '../lib/supabase';
 import { AIPlatform, FeedbackSubmission } from '../types';
 import { ChevronRight, CheckCircle2 } from 'lucide-react';
+import { MetaPixelEvents } from '../lib/metaPixel';
 
 export function TasksPage() {
   const navigate = useNavigate();
@@ -60,6 +61,12 @@ export function TasksPage() {
     const submission = submissions[platformId];
     if (submission) {
       return;
+    }
+    
+    const platform = platforms[platformId];
+    if (platform) {
+      MetaPixelEvents.taskStarted(platform.domain, platform.amount_per_submission);
+      MetaPixelEvents.viewContent(`Task: ${platform.domain}`, 'task', platform.amount_per_submission);
     }
     
     const canAccess = await validateTaskAccess(platformId);

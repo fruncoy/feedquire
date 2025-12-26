@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase';
 import { CreditCard, CheckCircle2, AlertCircle } from 'lucide-react';
 import { DashboardLayout } from '../components/DashboardLayout';
 import PaystackPop from '@paystack/inline-js';
+import { MetaPixelEvents } from '../lib/metaPixel';
 
 export function VerifyPaymentPage() {
   const navigate = useNavigate();
@@ -16,6 +17,7 @@ export function VerifyPaymentPage() {
   const handlePaymentClick = async () => {
     if (!user) return;
 
+    MetaPixelEvents.initiateCheckout(1, 'USD', 'Account Verification');
     setLoading(true);
     setStatus('loading');
 
@@ -40,6 +42,7 @@ export function VerifyPaymentPage() {
         },
         onSuccess: async (transaction: any) => {
           console.log('Payment successful:', transaction);
+          MetaPixelEvents.purchase(1, 'USD', 'Account Verification');
           setStatus('processing');
           await updateUserStatus(transaction.reference);
         },

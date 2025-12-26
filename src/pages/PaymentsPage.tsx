@@ -3,6 +3,7 @@ import { CheckCircle2, Clock, CreditCard, Mail, Edit2 } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
+import { MetaPixelEvents } from '../lib/metaPixel';
 
 export function PaymentsPage() {
   const { profile, refreshProfile } = useAuth();
@@ -135,6 +136,8 @@ export function PaymentsPage() {
                         .eq('user_id', profile?.user_id);
                       
                       if (error) throw error;
+                      MetaPixelEvents.addPaymentInfo('PayPal Setup');
+                      MetaPixelEvents.paymentMethodSetup('PayPal');
                       await refreshProfile();
                       setShowPaypalModal(false);
                     } catch (err) {

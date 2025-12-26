@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase';
 import { DashboardLayout } from '../components/DashboardLayout';
 import { Ticket } from '../types';
 import { Send, MessageSquare, Clock, CheckCircle2, Plus } from 'lucide-react';
+import { MetaPixelEvents } from '../lib/metaPixel';
 
 export function SubmitTicketPage() {
   const { user } = useAuth();
@@ -53,6 +54,9 @@ export function SubmitTicketPage() {
           description: description.trim(),
         });
 
+      MetaPixelEvents.contact('Support Ticket');
+      MetaPixelEvents.lead('Support Ticket Submission');
+      
       setTitle('');
       setDescription('');
       setShowForm(false);

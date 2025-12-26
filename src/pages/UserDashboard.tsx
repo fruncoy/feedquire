@@ -7,6 +7,7 @@ import { ChevronRight, Lock } from 'lucide-react';
 import { usePermissions } from '../hooks/usePermissions';
 import { DashboardLayout } from '../components/DashboardLayout';
 import { WelcomeLetter } from '../components/WelcomeLetter';
+import { MetaPixelEvents } from '../lib/metaPixel';
 
 export function UserDashboard() {
   const navigate = useNavigate();
@@ -19,6 +20,8 @@ export function UserDashboard() {
 
   useEffect(() => {
     if (!user) return;
+    MetaPixelEvents.dashboardView('user');
+    MetaPixelEvents.viewContent('User Dashboard', 'dashboard');
     refreshProfile();
     fetchData();
   }, [user]);
