@@ -161,46 +161,48 @@ export function FeedbackPage() {
 
         if (submissionError) throw submissionError;
         newSubmission = data;
+      } else {
+        // Delete existing responses for this submission to avoid duplicates
+        const { error: deleteError } = await supabase
+          .from('submission_responses')
+          .delete()
+          .eq('submission_id', existingSubmission.id);
+        
+        if (deleteError) console.error('Failed to delete old responses:', deleteError);
       }
 
-      // Save the last question's response
+      // Save ALL responses
       const allQuestions = Object.values(sections).flatMap(section => section.questions);
-      const lastQuestion = allQuestions[allQuestions.length - 1];
       
       console.log('=== DEBUG FEEDBACK SUBMISSION ===');
       console.log('Total questions:', allQuestions.length);
-      console.log('Last question:', lastQuestion);
       console.log('All responses:', responses);
       console.log('Submission ID:', newSubmission.id);
       
-      if (lastQuestion) {
-        const lastResponse = responses[lastQuestion.id];
-        console.log('Last question ID:', lastQuestion.id);
-        console.log('Last response:', lastResponse);
-        console.log('Last response trimmed:', lastResponse?.trim());
+      // Prepare all responses to insert
+      const responsesToInsert = allQuestions
+        .filter(q => responses[q.id]?.trim())
+        .map(q => ({
+          submission_id: newSubmission.id,
+          question_id: q.id,
+          response_text: responses[q.id].trim(),
+        }));
+      
+      if (responsesToInsert.length > 0) {
+        console.log('Attempting to save responses:', responsesToInsert);
+        const { data, error } = await supabase
+          .from('submission_responses')
+          .insert(responsesToInsert)
+          .select();
         
-        if (lastResponse?.trim()) {
-          console.log('Attempting to save response...');
-          const { data, error } = await supabase
-            .from('submission_responses')
-            .insert({
-              submission_id: newSubmission.id,
-              question_id: lastQuestion.id,
-              response_text: lastResponse.trim(),
-            })
-            .select();
-          
-          console.log('Save result:', { data, error });
-          if (error) {
-            console.error('Response save failed:', error);
-          } else {
-            console.log('Response saved successfully:', data);
-          }
+        console.log('Save result:', { data, error });
+        if (error) {
+          console.error('Response save failed:', error);
         } else {
-          console.log('No response to save - empty or null');
+          console.log('Responses saved successfully:', data);
         }
       } else {
-        console.log('No last question found');
+        console.log('No responses to save');
       }
       console.log('=== END DEBUG ===');
 

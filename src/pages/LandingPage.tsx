@@ -383,6 +383,7 @@ export function LandingPage() {
       <header className="header">
         <Logo className="h-8 w-auto" />
         <div className="nav-container">
+          <Link to="/company" className="nav-link">For Companies</Link>
           <a href="#how-it-works" className="nav-link">How It Works</a>
           <a href="#why-us" className="nav-link">Why Us</a>
           <a href="#faqs" className="nav-link">FAQs</a>
@@ -411,6 +412,7 @@ export function LandingPage() {
             ×
           </button>
         </div>
+        <Link to="/company" onClick={toggleMobileMenu}>For Companies</Link>
         <a href="#how-it-works" onClick={toggleMobileMenu}>How It Works</a>
         <a href="#why-us" onClick={toggleMobileMenu}>Why Us</a>
         <a href="#faqs" onClick={toggleMobileMenu}>FAQs</a>
@@ -695,17 +697,7 @@ export function LandingPage() {
                 </div>
               </div>
               
-              <div className="mt-6 md:mt-8 p-4 md:p-6 bg-gradient-to-r from-[#000150] to-indigo-700 rounded-2xl text-white" itemScope itemType="https://schema.org/PostalAddress">
-                <h4 className="text-lg md:text-xl font-bold mb-3 md:mb-4">Corporate Headquarters</h4>
-                <div className="space-y-1 md:space-y-2 text-sm md:text-base">
-                  <p itemProp="streetAddress">130 Sanchez Street</p>
-                  <p><span itemProp="addressLocality">San Francisco</span>, <span itemProp="addressRegion">CA</span> <span itemProp="postalCode">94114</span></p>
-                  <p itemProp="addressCountry">United States</p>
-                  <p className="mt-2 md:mt-3"><strong>Phone:</strong> <span itemProp="telephone">(415) 555-3200</span></p>
-                  <p><strong>Business Hours:</strong> Monday-Friday, 9:00 AM - 6:00 PM PST</p>
-                  <p className="text-indigo-200 text-xs md:text-sm mt-2 md:mt-3">For technical support and account assistance, please log into your dashboard</p>
-                </div>
-              </div>
+
             </div>
             
             <div className="space-y-6 md:space-y-8 order-1 lg:order-2">
@@ -760,18 +752,13 @@ export function LandingPage() {
               Powered by <a href="https://neuralink.com/" target="_blank" rel="noopener noreferrer" className="text-white hover:underline">Neuralink</a>
             </p>
           </div>
-          <div className="flex justify-center gap-6 mb-6">
+          <div className="flex justify-center gap-6">
             <Link to="/privacy-policy" className="text-gray-300 hover:text-white text-sm transition-colors">
               Privacy Policy
             </Link>
             <Link to="/terms-of-service" className="text-gray-300 hover:text-white text-sm transition-colors">
               Terms of Service
             </Link>
-          </div>
-          <div className="border-t border-gray-700 pt-8">
-            <p className="text-gray-400 text-sm">
-              © 2024 Feedquire. All Rights Reserved. San Francisco, California
-            </p>
           </div>
         </div>
       </footer>

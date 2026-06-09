@@ -1,17 +1,20 @@
+
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
-import { Profile, User } from '../types';
+import { Profile, User, Company } from '../types';
 
 interface AuthContextType {
   user: User | null;
   profile: Profile | null;
+  company: Company | null;
   session: Session | null;
   loading: boolean;
   signUp: (name: string, email: string, password: string, phone?: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
+  refreshCompany: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -19,6 +22,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [company, setCompany] = useState<Company | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -35,6 +39,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     clearTimeout(timeoutHandle);
   }
 
+  async function fetchCompany(userId: string) {
+    try {
+      const { data, error } = await supabase
+        .from('companies')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (!error) {
+        setCompany(data as Company | null);
+      } else {
+        console.error('Company fetch error:', error);
+        setCompany(null);
+      }
+    } catch (error) {
+      console.error('Error in fetchCompany:', error);
+      setCompany(null);
+    }
+  }
+
   useEffect(() => {
     const initializeAuth = async () => {
       try {
@@ -49,7 +73,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             user_metadata: user.user_metadata,
           });
           setLoading(true);
-          fetchProfileWithTimeout(user.id, 4000);
+          
+          // First check if user is a company
+          const { data: companyData } = await supabase
+            .from('companies')
+            .select('*')
+            .eq('user_id', user.id)
+            .maybeSingle();
+          
+          if (companyData) {
+            setCompany(companyData);
+            setProfile(null);
+          } else {
+            await Promise.all([
+              fetchProfileWithTimeout(user.id, 4000),
+              fetchCompany(user.id)
+            ]);
+          }
         }
       } catch (error) {
         console.error('Error initializing auth:', error);
@@ -72,10 +112,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           user_metadata: user.user_metadata,
         });
         setLoading(true);
-        fetchProfileWithTimeout(user.id, 4000);
+        
+        // First check if user is a company
+        const { data: companyData } = await supabase
+          .from('companies')
+          .select('*')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        
+        if (companyData) {
+          setCompany(companyData);
+          setProfile(null);
+        } else {
+          await Promise.all([
+            fetchProfileWithTimeout(user.id, 4000),
+            fetchCompany(user.id)
+          ]);
+        }
       } else {
         setUser(null);
         setProfile(null);
+        setCompany(null);
         setLoading(false);
       }
     });
@@ -99,7 +156,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (error) {
         console.error('Profile fetch error:', error);
-        // If there's a database error, create a minimal profile to prevent infinite loading
         const { data: userData } = await supabase.auth.getUser();
         const fallbackProfile: Profile = {
           id: 'temp-' + userId,
@@ -115,7 +171,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           updated_at: new Date().toISOString()
         };
         setProfile(fallbackProfile);
-        setLoading(false);
         return;
       }
 
@@ -137,7 +192,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         if (createError) {
           console.error('Error creating profile:', createError);
-          // Create fallback profile if database insert fails
           const fallbackProfile: Profile = {
             id: 'temp-' + userId,
             user_id: userId,
@@ -152,22 +206,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             updated_at: new Date().toISOString()
           };
           setProfile(fallbackProfile);
-          setLoading(false);
           return;
         }
 
         console.log('Profile created successfully:', newProfile);
         setProfile(newProfile as Profile);
-        setLoading(false);
         return;
       }
       
       console.log('Profile found:', data);
       setProfile(data as Profile);
-      setLoading(false);
     } catch (error) {
       console.error('Error in fetchProfile:', error);
-      // Create fallback profile to prevent infinite loading
       const fallbackProfile: Profile = {
         id: 'temp-' + userId,
         user_id: userId,
@@ -182,7 +232,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         updated_at: new Date().toISOString()
       };
       setProfile(fallbackProfile);
-      setLoading(false);
     }
   };
 
@@ -231,8 +280,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw error;
       }
 
-
-
       console.log('Signin successful:', data.user?.email);
     } catch (error) {
       console.error('Sign in error:', error);
@@ -242,26 +289,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     try {
-      await supabase.auth.signOut();
+      console.log('Signing out user');
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      // Clear all state first
       setUser(null);
       setProfile(null);
+      setCompany(null);
+      setSession(null);
+      setLoading(false);
       
-      // Clear all local storage and cache
-      localStorage.clear();
-      sessionStorage.clear();
-      
-      // Clear any cached data
-      if ('caches' in window) {
-        const cacheNames = await caches.keys();
-        await Promise.all(cacheNames.map(name => caches.delete(name)));
-      }
+      console.log('Sign out successful');
     } catch (error) {
       console.error('Sign out error:', error);
       throw error;
     }
   };
-
-
 
   const refreshProfile = async () => {
     if (user) {
@@ -269,8 +313,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const refreshCompany = async () => {
+    if (user) {
+      await fetchCompany(user.id);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, profile, session, loading, signUp, signIn, signOut, refreshProfile }}>
+    <AuthContext.Provider value={{ user, profile, company, session, loading, signUp, signIn, signOut, refreshProfile, refreshCompany }}>
       {children}
     </AuthContext.Provider>
   );
@@ -283,4 +333,3 @@ export function useAuth() {
   }
   return context;
 }
-  

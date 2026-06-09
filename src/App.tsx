@@ -37,6 +37,13 @@ import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
 import { TermsOfServicePage } from './pages/TermsOfServicePage';
 import { SecureProtectedRoute } from './components/SecureProtectedRoute';
 
+import { CompanyLandingPage } from './pages/CompanyLandingPage';
+import { CompanySignupPage } from './pages/CompanySignupPage';
+import { CompanyLoginPage } from './pages/CompanyLoginPage';
+import { CompanyDashboardPage } from './pages/CompanyDashboardPage';
+import { CompanyVerifyPaymentPage } from './pages/CompanyVerifyPaymentPage';
+import { AdminCompaniesPage } from './pages/AdminCompaniesPage';
+
 function App() {
   return (
     <BrowserRouter>
@@ -227,6 +234,15 @@ function App() {
           />
 
           <Route
+            path="/control/companies"
+            element={
+              <SecureProtectedRoute requireFeature="admin">
+                <AdminCompaniesPage />
+              </SecureProtectedRoute>
+            }
+          />
+
+          <Route
             path="/submit-ticket"
             element={
               <ProtectedRoute>
@@ -235,6 +251,58 @@ function App() {
             }
           />
 
+          <Route path="/company/signup" element={<CompanySignupPage />} />
+          <Route path="/company/login" element={<CompanyLoginPage />} />
+          <Route
+            path="/company/dashboard"
+            element={
+              <ProtectedRoute>
+                <CompanyDashboardPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/company/software"
+            element={
+              <ProtectedRoute>
+                <CompanyDashboardPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/company/results"
+            element={
+              <ProtectedRoute>
+                <CompanyDashboardPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/company/payments"
+            element={
+              <ProtectedRoute>
+                <CompanyDashboardPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/company/profile"
+            element={
+              <ProtectedRoute>
+                <CompanyDashboardPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/company/verify-payment"
+            element={
+              <ProtectedRoute>
+                <CompanyVerifyPaymentPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route path="/company" element={<CompanyLandingPage />} />
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/blog/:slug" element={<BlogArticlePage />} />
           <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />

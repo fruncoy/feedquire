@@ -110,3 +110,44 @@ export interface Ticket {
   created_at: string;
   updated_at: string;
 }
+
+export interface Company {
+  id: string;
+  user_id: string;
+  company_name: string;
+  company_email: string;
+  company_website?: string;
+  verification_status: string;
+  payment_status: string;
+  account_status: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CompanyPayment {
+  id: string;
+  company_id: string;
+  amount: number;
+  payment_method?: string;
+  payment_reference?: string;
+  status: string;
+  type?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SoftwareLink {
+  id: string;
+  company_id: string;
+  name: string;
+  description: string;
+  website: string;
+  total_budget: number;
+  max_responses: number;
+  amount_per_submission: number;
+  optional_clarifications?: string;
+  deadline?: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}

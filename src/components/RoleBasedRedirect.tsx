@@ -2,7 +2,12 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 export function RoleBasedRedirect() {
-  const { profile } = useAuth();
+  const { profile, company } = useAuth();
+
+  // Check if user is a company first
+  if (company) {
+    return <Navigate to="/company/dashboard" replace />;
+  }
 
   if (!profile) {
     return <Navigate to="/login" replace />;

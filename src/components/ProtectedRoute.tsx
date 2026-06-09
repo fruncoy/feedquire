@@ -11,12 +11,16 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children, requiredRole, requiredStatus, minTier }: ProtectedRouteProps) {
-  const { user, profile, loading } = useAuth();
+  const { user, profile, company, loading } = useAuth();
   
   const userPages = ['/dashboard', '/tasks', '/submissions', '/profile', '/payments'];
-  const adminPages = ['/control', '/control/accounts', '/control/systems', '/control/reports'];
+  const adminPages = ['/control', '/control/accounts', '/control/systems', '/control/reports', '/control/tickets', '/control/cleanup', '/control/companies'];
+  const companyPages = ['/company/dashboard', '/company/verify-payment', '/company/software', '/company/results', '/company/payments', '/company/profile'];
+  
   const isUserPage = userPages.includes(window.location.pathname);
   const isAdminPage = adminPages.some(page => window.location.pathname.startsWith(page));
+  const isCompanyPage = companyPages.some(page => window.location.pathname.startsWith(page));
+  
   const requiresStrictProfile = Boolean(requiredRole || requiredStatus || minTier);
   
   // While loading, allow non-strict pages to render; keep spinner for strict routes
@@ -39,12 +43,13 @@ export function ProtectedRoute({ children, requiredRole, requiredStatus, minTier
     return <Navigate to="/login" replace />;
   }
 
-  // If user exists but profile is not yet loaded, allow rendering unless strict checks are required
-  if (user && !profile && !requiresStrictProfile) {
+  // If user exists but no profile/company loaded, allow rendering unless strict checks are required
+  if (user && !profile && !company && !requiresStrictProfile) {
     return <>{children}</>;
   }
-  // If strict checks are required, wait for profile
-  if (user && !profile && requiresStrictProfile) {
+  
+  // If strict checks are required, wait for profile or company
+  if (user && !profile && !company && requiresStrictProfile) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
@@ -55,18 +60,26 @@ export function ProtectedRoute({ children, requiredRole, requiredStatus, minTier
     );
   }
 
+  // Handle company user redirects
+  if (company) {
+    if (isUserPage || isAdminPage) {
+      return <Navigate to="/company/dashboard" replace />;
+    }
+    return <>{children}</>;
+  }
+
   // Check role-based access - only show 404 if user has wrong role
   if (requiredRole && profile && profile.role !== requiredRole) {
     return <NotFoundPage />;
   }
 
-  // Auto-redirect admins to admin dashboard when accessing user pages
-  if (profile?.role === 'system_operator' && isUserPage) {
+  // Auto-redirect admins to admin dashboard when accessing user/company pages
+  if (profile?.role === 'system_operator' && (isUserPage || isCompanyPage)) {
     return <Navigate to="/control" replace />;
   }
 
-  // Auto-redirect users to user dashboard when accessing admin pages
-  if (profile?.role === 'user' && isAdminPage) {
+  // Auto-redirect users to user dashboard when accessing admin/company pages
+  if (profile?.role === 'user' && (isAdminPage || isCompanyPage)) {
     return <Navigate to="/dashboard" replace />;
   }
 

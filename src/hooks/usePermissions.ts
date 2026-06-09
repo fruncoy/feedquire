@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { PermissionService } from '../lib/permissions';
+import { useAuth } from '../contexts/AuthContext';
 
 interface UserFeatures {
   tasks: boolean;
@@ -10,6 +10,7 @@ interface UserFeatures {
 }
 
 export function usePermissions() {
+  const { profile, loading: authLoading } = useAuth();
   const [features, setFeatures] = useState<UserFeatures>({
     tasks: false,
     revisions: false,
@@ -20,26 +21,35 @@ export function usePermissions() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadPermissions();
-  }, []);
-
-  const loadPermissions = async () => {
-    try {
-      const userFeatures = await PermissionService.getUserFeatures();
-      setFeatures(userFeatures);
-    } catch (error) {
-      console.error('Failed to load permissions:', error);
-    } finally {
-      setLoading(false);
+    if (authLoading) return;
+    
+    if (profile) {
+      const status = profile.account_status;
+      setFeatures({
+        tasks: status === '2hF2kQ7rD5xVfM1tZ',
+        revisions: status === '2hF2kQ7rD5xVfM1tZ',
+        assessment: status !== 'a7F9xQ2mP6kM4rT5',
+        admin: profile.role === 'system_operator',
+        proFeatures: status === '2hF2kQ7rD5xVfM1tZ'
+      });
+    } else {
+      setFeatures({
+        tasks: false,
+        revisions: false,
+        assessment: false,
+        admin: false,
+        proFeatures: false
+      });
     }
-  };
+    setLoading(false);
+  }, [profile, authLoading]);
 
   const canAccessTasks = async (): Promise<boolean> => {
-    return await PermissionService.canAccessTasks();
+    return features.tasks;
   };
 
   const validateTaskAccess = async (taskId: string): Promise<boolean> => {
-    return await PermissionService.validateTaskAccess(taskId);
+    return features.tasks;
   };
 
   return {
@@ -47,6 +57,6 @@ export function usePermissions() {
     loading,
     canAccessTasks,
     validateTaskAccess,
-    refreshPermissions: loadPermissions
+    refreshPermissions: () => {}
   };
 }

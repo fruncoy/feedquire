@@ -1,0 +1,17 @@
+INSERT INTO ai_platforms (domain, description, amount_per_submission, status, is_assessment) VALUES
+('momclock.com', 'AI-powered time management and productivity platform', 2.56, 'active', false),
+('only-hate.vercel.app', 'AI content moderation and sentiment analysis tool', 3.67, 'active', false),
+('creaibo.io', 'Creative AI content generation platform', 2.87, 'active', false),
+('foundire.com', 'AI-powered business intelligence and analytics', 2.34, 'active', false),
+('surgeflow.ai', 'AI workflow automation and optimization platform', 2.23, 'active', false),
+('connectmachine.ai', 'AI-driven machine learning connectivity platform', 2.45, 'active', false),
+('loki.build', 'AI development and deployment platform', 2.54, 'active', false),
+('clickup.com/v4', 'AI-enhanced project management and collaboration', 3.67, 'active', false),
+('planeatai.com', 'AI meal planning and nutrition optimization', 3.46, 'active', false),
+('documentation.ai', 'AI-powered documentation generation platform', 2.17, 'active', false),
+('multidrive.io', 'AI cloud storage and file management system', 2.12, 'active', false),
+('card.biz', 'AI business card and networking platform', 2.45, 'active', false),
+('openai.com/index/new-chatgpt-images-is-here', 'OpenAI ChatGPT image generation feature', 2.89, 'active', false),
+('giselles.ai', 'AI-powered virtual assistant and automation', 2.75, 'active', false),
+('noiz.ai', 'AI audio processing and noise reduction platform', 2.56, 'active', false),
+('userology.co', 'AI user experience and behavior analytics', 2.67, 'active', false);

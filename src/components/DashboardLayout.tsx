@@ -14,17 +14,23 @@ interface DashboardLayoutProps {
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { signOut, profile } = useAuth();
+  const { signOut, profile, company } = useAuth();
   const { features } = usePermissions();
   const [loading, setLoading] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileExpanded, setMobileExpanded] = useState(false);
 
   const handleLogout = async () => {
-    await signOut();
-    navigate('/login');
+    try {
+      await signOut();
+      navigate('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Fallback navigation if sign out fails
+      navigate('/');
+    }
   };
-
+  
 
 
   // Determine admin status from current route to avoid exposing role
@@ -37,7 +43,15 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     { path: '/control/reports', icon: ClipboardList, label: 'Reports' },
     { path: '/control/tickets', icon: MessageSquare, label: 'Tickets' },
     { path: '/control/cleanup', icon: Trash2, label: 'Cleanup' },
+  ] : company ? [
+    // Company menu items
+    { path: '/company/dashboard', icon: Home, label: 'Dashboard' },
+    { path: '/company/software', icon: Package, label: 'Software' },
+    { path: '/company/results', icon: FileText, label: 'Results' },
+    { path: '/company/payments', icon: CreditCard, label: 'Payments' },
+    { path: '/company/profile', icon: User, label: 'Profile' },
   ] : [
+    // User menu items
     { path: '/dashboard', icon: Home, label: 'Dashboard' },
     { path: '/tasks', icon: CheckSquare, label: 'Tasks' },
     { path: '/submissions', icon: FileText, label: 'Submissions' },
@@ -124,45 +138,18 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           })}
         </nav>
         
-        <div className={`absolute ${mobileExpanded ? 'bottom-32' : 'bottom-20'} ${sidebarCollapsed ? 'lg:bottom-20' : 'lg:bottom-32'} left-2 right-2 lg:left-4 lg:right-4`}>
-          {!isAdminRoute && (
-            <div className="mb-4">
-              <button 
-                onClick={() => {
-                  navigate('/account');
-                  setMobileExpanded(false);
-                }}
-                className={`w-full flex items-center ${mobileExpanded ? 'gap-3 px-3 bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200' : 'justify-center px-2'} ${sidebarCollapsed ? 'lg:justify-center lg:px-2' : 'lg:justify-start lg:gap-3 lg:px-6 lg:bg-gradient-to-r lg:from-amber-50 lg:to-yellow-50 lg:border lg:border-amber-200'} py-2 rounded-lg hover:bg-amber-100 transition-all duration-200`}
-                title={!(mobileExpanded || !sidebarCollapsed) ? 'Go Pro' : ''}
-              >
-                <Crown size={20} className="lg:w-5 lg:h-5 text-amber-600" />
-                {mobileExpanded && <span className="text-sm font-medium text-amber-800">Go Pro</span>}
-                {!sidebarCollapsed && <span className="hidden lg:block text-sm font-medium text-amber-800">Go Pro</span>}
-              </button>
-            </div>
-          )}
-        </div>
+
         
         <div className="absolute bottom-4 left-2 right-2 lg:left-4 lg:right-4 border-t border-gray-200 pt-4">
           <button
             onClick={handleLogout}
-            className={`w-full flex items-center ${mobileExpanded ? 'gap-3 px-3' : 'justify-center px-1'} ${sidebarCollapsed ? 'lg:justify-center lg:px-1' : 'lg:justify-start lg:gap-3 lg:px-6'} py-2 lg:py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg mb-3`}
+            className={`w-full flex items-center ${mobileExpanded ? 'gap-3 px-3' : 'justify-center px-1'} ${sidebarCollapsed ? 'lg:justify-center lg:px-1' : 'lg:justify-start lg:gap-3 lg:px-6'} py-2 lg:py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg`}
             title={!(mobileExpanded || !sidebarCollapsed) ? 'Sign out' : ''}
           >
             <LogOut size={20} className="lg:w-5 lg:h-5" />
             {mobileExpanded && <span>Sign out</span>}
             {!sidebarCollapsed && <span className="hidden lg:block">Sign out</span>}
           </button>
-          {mobileExpanded && (
-            <p className="text-xs text-gray-500 text-left leading-relaxed px-3">
-              Copyright © 2025 Feedquire® <br /> San Francisco, CA.
-            </p>
-          )}
-          {!sidebarCollapsed && (
-            <p className="hidden lg:block text-xs text-gray-500 text-left leading-relaxed px-3">
-              Copyright © 2025 Feedquire® <br /> San Francisco, CA.
-            </p>
-          )}
         </div>
       </div>
 
@@ -172,10 +159,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         <div className="bg-white/95 backdrop-blur border-b border-gray-200 sticky top-0 z-30 shadow-sm">
           <div className="px-4 lg:px-6 py-4 lg:py-6 h-16 lg:h-20 flex items-center justify-end gap-3">
             <div className="flex items-center gap-3">
-              <p className="text-gray-600 text-sm">Honored to have you, <span className="font-medium text-gray-900">{profile?.full_name?.split(' ')[0] || 'User'}</span></p>
+              <p className="text-gray-600 text-sm">
+                Honored to have you, <span className="font-medium text-gray-900">{company?.company_name?.split(' ')[0] || profile?.full_name?.split(' ')[0] || 'User'}</span>
+              </p>
               <div className="w-8 h-8 bg-gray-900 rounded-full flex items-center justify-center">
                 <span className="text-white text-sm font-medium">
-                  {(profile?.full_name?.charAt(0) || 'U').toUpperCase()}
+                  {(company?.company_name?.charAt(0) || profile?.full_name?.charAt(0) || 'U').toUpperCase()}
                 </span>
               </div>
             </div>
