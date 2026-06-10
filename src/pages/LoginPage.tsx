@@ -18,11 +18,19 @@ export function LoginPage() {
 
   useEffect(() => {
     console.log('LoginPage state:', { user, authLoading, company, profile });
-    // If user is already logged in, redirect to control for demo purposes
-    if (user) {
-      navigate('/control');
+    // If user is already logged in, redirect to dashboard
+    if (user && !authLoading) {
+      if (company) {
+        navigate('/company/dashboard');
+      } else if (profile) {
+        if (profile.role === 'system_operator') {
+          navigate('/control');
+        } else {
+          navigate('/dashboard');
+        }
+      }
     }
-  }, [user, navigate]);
+  }, [user, authLoading, company, profile, navigate]);
 
   useEffect(() => {
     console.log('LoginPage - loginSuccess:', loginSuccess, 'authLoading:', authLoading);

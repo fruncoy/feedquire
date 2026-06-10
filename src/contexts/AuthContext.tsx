@@ -101,6 +101,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             email: user.email || '',
             user_metadata: user.user_metadata,
           });
+          // First check if user is a company or user
+          const { data: companyData } = await supabase
+            .from('companies')
+            .select('*')
+            .eq('user_id', user.id)
+            .maybeSingle();
+          if (companyData) {
+            console.log('AuthContext - initializing: user is company');
+            setCompany(companyData);
+            setProfile(null);
+          } else {
+            console.log('AuthContext - initializing: fetching profile');
+            await fetchProfile(user.id);
+          }
         }
       } catch (error) {
         console.error('AuthContext - initializeAuth error:', error);
@@ -116,6 +130,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, newSession) => {
       console.log('AuthContext - auth state changed:', event, 'newSession:', newSession?.user?.email);
       setSession(newSession);
+      setLoading(true);
 
       if (newSession) {
         const user = newSession.user;
@@ -124,6 +139,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           email: user.email || '',
           user_metadata: user.user_metadata,
         });
+        // First check if user is a company
+        const { data: companyData } = await supabase
+          .from('companies')
+          .select('*')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        if (companyData) {
+          console.log('AuthContext - authStateChange: user is company');
+          setCompany(companyData);
+          setProfile(null);
+        } else {
+          console.log('AuthContext - authStateChange: fetching profile');
+          await fetchProfile(user.id);
+        }
       } else {
         console.log('AuthContext - authStateChange: no session, clearing state');
         setUser(null);

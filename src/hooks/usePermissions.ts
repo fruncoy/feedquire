@@ -10,7 +10,7 @@ interface UserFeatures {
 }
 
 export function usePermissions() {
-  const { profile, loading: authLoading } = useAuth();
+  const { profile, company, loading: authLoading } = useAuth();
   const [features, setFeatures] = useState<UserFeatures>({
     tasks: false,
     revisions: false,
@@ -25,15 +25,36 @@ export function usePermissions() {
       return;
     }
     
-    setFeatures({
-      tasks: true, 
-      revisions: true, 
-      assessment: true, 
-      admin: true, // DEMO: Allow all users to be admins
-      proFeatures: true 
-    });
+    if (profile) {
+      // Logic for user profiles
+      const status = profile.account_status;
+      setFeatures({
+        tasks: status === '1Q3bF8vL1nT9pB6wR' || status === '2hF2kQ7rD5xVfM1tZ',
+        revisions: status === '2hF2kQ7rD5xVfM1tZ',
+        assessment: status !== 'a7F9xQ2mP6kM4rT5',
+        admin: profile.role === 'system_operator' || profile.role === 'admin',
+        proFeatures: status === '2hF2kQ7rD5xVfM1tZ'
+      });
+    } else if (company) {
+      // Logic for company profiles
+      setFeatures({
+        tasks: false,
+        revisions: false,
+        assessment: false,
+        admin: false,
+        proFeatures: false
+      });
+    } else {
+      setFeatures({
+        tasks: false,
+        revisions: false,
+        assessment: false,
+        admin: false,
+        proFeatures: false
+      });
+    }
     setLoading(false);
-  }, [authLoading]);
+  }, [profile, company, authLoading]);
 
   const canAccessTasks = async (): Promise<boolean> => {
     return features.tasks;

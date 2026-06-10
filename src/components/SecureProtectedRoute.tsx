@@ -26,5 +26,9 @@ export function SecureProtectedRoute({ children, requireFeature }: SecureProtect
     return <Navigate to="/login" replace />;
   }
 
+  if (requireFeature && !features[requireFeature]) {
+    return <Navigate to="/unauthorized" replace />;
+  }
+
   return <>{children}</>;
 }

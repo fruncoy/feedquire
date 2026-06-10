@@ -29,7 +29,7 @@ export function AdminDashboard() {
 
   const fetchStats = async () => {
     try {
-      // First try to fetch from Supabase
+      // Fetch all data in parallel for better performance
       const [
         usersResult,
         tier1Result,
@@ -54,7 +54,7 @@ supabase.from('feedback_submissions').select('*', { count: 'exact', head: true }
 
       const totalReceived = ((tier2Result.count || 0) + (tier3Result.count || 0)) * 130;
 
-      const fetchedStats = {
+      setStats({
         totalUsers: usersResult.count || 0,
         tier1Users: tier1Result.count || 0,
         tier2Users: tier2Result.count || 0,
@@ -66,36 +66,9 @@ supabase.from('feedback_submissions').select('*', { count: 'exact', head: true }
         approvedSubmissions: approvedResult.count || 0,
         rejectedSubmissions: rejectedSubResult.count || 0,
 
-      };
-
-      // If we got data, use it; otherwise use fallback demo data
-      if (fetchedStats.totalUsers > 0) {
-        setStats(fetchedStats);
-      } else {
-        setStats({
-          totalUsers: 10,
-          tier1Users: 4,
-          tier2Users: 3,
-          tier3Users: 3,
-          totalReceived: 780, // (3+3)*130
-          pendingSubmissions: 2,
-          approvedSubmissions: 7,
-          rejectedSubmissions: 1
-        });
-      }
+      });
     } catch (err) {
       console.error('Error fetching stats:', err);
-      // Use fallback demo data if Supabase fails
-      setStats({
-        totalUsers: 10,
-        tier1Users: 4,
-        tier2Users: 3,
-        tier3Users: 3,
-        totalReceived: 780, // (3+3)*130
-        pendingSubmissions: 2,
-        approvedSubmissions: 7,
-        rejectedSubmissions: 1
-      });
     } finally {
       setLoading(false);
     }
