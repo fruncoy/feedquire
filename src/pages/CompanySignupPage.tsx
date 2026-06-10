@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { CheckCircle, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import homeImg from '../assets/home.png';
@@ -16,6 +17,16 @@ export function CompanySignupPage() {
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const navigate = useNavigate();
+  const { loading: authLoading } = useAuth();
+
+  useEffect(() => {
+    if (showSuccess && !authLoading) {
+      const timeout = setTimeout(() => {
+        navigate('/company/dashboard');
+      }, 1000);
+      return () => clearTimeout(timeout);
+    }
+  }, [showSuccess, authLoading, navigate]);
 
   useEffect(() => {
     document.title = 'Company Sign Up - Feedquire';
@@ -38,7 +49,6 @@ export function CompanySignupPage() {
     setLoading(true);
 
     try {
-      // First sign up the user with is_company metadata
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email: companyEmail,
         password: password,
@@ -53,26 +63,19 @@ export function CompanySignupPage() {
       if (signUpError) throw signUpError;
       if (!signUpData.user) throw new Error('Failed to create user');
 
-      // Delete any accidentally created profile
       await supabase.from('profiles').delete().eq('user_id', signUpData.user.id);
 
-      // Then create company record
-      const { error: companyError } = await supabase
-        .from('companies')
-        .insert({
-          user_id: signUpData.user.id,
-          company_name: companyName,
-          company_email: companyEmail,
-          company_website: companyWebsite,
-        });
+      const { error: companyError } = await supabase.from('companies').insert({
+        user_id: signUpData.user.id,
+        company_name: companyName,
+        company_email: companyEmail,
+        company_website: companyWebsite
+      });
 
       if (companyError) throw companyError;
 
       setShowSuccess(true);
       setLoading(false);
-      setTimeout(() => {
-        navigate('/company/dashboard');
-      }, 4000);
     } catch (err: any) {
       setError(err.message || 'Failed to sign up');
       setLoading(false);

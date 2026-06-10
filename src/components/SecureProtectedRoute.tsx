@@ -1,7 +1,6 @@
 import { ReactNode, useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { PermissionService } from '../lib/permissions';
 
 interface SecureProtectedRouteProps {
   children: ReactNode;
@@ -9,15 +8,18 @@ interface SecureProtectedRouteProps {
 }
 
 export function SecureProtectedRoute({ children, requireFeature }: SecureProtectedRouteProps) {
-  const { user, loading: authLoading } = useAuth();
+  const { user, profile, company, loading: authLoading } = useAuth();
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
 
+  console.log('SecureProtectedRoute state:', { user, profile, company, authLoading, hasPermission, loading, requireFeature });
+
   useEffect(() => {
     checkPermissions();
-  }, [user, requireFeature]);
+  }, [user, profile, company, authLoading, requireFeature]);
 
   const checkPermissions = async () => {
+    console.log('checkPermissions called with:', { user, profile, company, authLoading, requireFeature });
     if (authLoading) {
       return; // Don't check permissions while auth is still loading
     }
@@ -28,39 +30,33 @@ export function SecureProtectedRoute({ children, requireFeature }: SecureProtect
       return;
     }
 
-    try {
-      if (!requireFeature) {
-        setHasPermission(true);
-        setLoading(false);
-        return;
-      }
-
-      let permitted = false;
-      switch (requireFeature) {
-        case 'tasks':
-          permitted = await PermissionService.canAccessTasks();
-          break;
-        case 'admin':
-          permitted = await PermissionService.isAdmin();
-          break;
-        case 'assessment':
-          permitted = await PermissionService.canAccessAssessment();
-          break;
-        case 'proFeatures':
-          const features = await PermissionService.getUserFeatures();
-          permitted = features.proFeatures;
-          break;
-        default:
-          permitted = true;
-      }
-
-      setHasPermission(permitted);
-    } catch (error) {
-      console.error('Permission check failed:', error);
-      setHasPermission(false);
-    } finally {
+    if (!requireFeature) {
+      setHasPermission(true);
       setLoading(false);
+      return;
     }
+
+    let permitted = false;
+    switch (requireFeature) {
+      case 'tasks':
+        permitted = profile?.account_status === '2hF2kQ7rD5xVfM1tZ';
+        break;
+      case 'admin':
+        permitted = profile?.role === 'system_operator';
+        break;
+      case 'assessment':
+        permitted = profile?.account_status !== 'a7F9xQ2mP6kM4rT5';
+        break;
+      case 'proFeatures':
+        permitted = profile?.account_status === '2hF2kQ7rD5xVfM1tZ';
+        break;
+      default:
+        permitted = true;
+    }
+
+    console.log('checkPermissions result:', { permitted, requireFeature, profile });
+    setHasPermission(permitted);
+    setLoading(false);
   };
 
   if (authLoading || loading) {

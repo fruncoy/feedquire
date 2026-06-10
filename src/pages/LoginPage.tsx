@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -11,8 +12,20 @@ export function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [loginSuccess, setLoginSuccess] = useState(false);
   const navigate = useNavigate();
-  const { signIn } = useAuth();
+  const { signIn, loading: authLoading } = useAuth();
+
+  useEffect(() => {
+    console.log('LoginPage - loginSuccess:', loginSuccess, 'authLoading:', authLoading);
+    if (loginSuccess && !authLoading) {
+      console.log('LoginPage - redirecting now');
+      const timeout = setTimeout(() => {
+        navigate('/dashboard');
+      }, 1000);
+      return () => clearTimeout(timeout);
+    }
+  }, [loginSuccess, authLoading, navigate]);
 
   useEffect(() => {
     document.title = 'Login - Access Your Feedquire Account | AI Testing Platform';
@@ -34,15 +47,13 @@ export function LoginPage() {
     }
 
     try {
+      console.log('LoginPage - about to call signIn');
       await signIn(email, password);
-      console.log('Sign in completed');
-      // Small delay to ensure auth state is updated
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 100);
+      console.log('LoginPage - signIn completed');
+      setLoginSuccess(true);
       setLoading(false);
     } catch (err: any) {
-      console.error('Login error:', err);
+      console.error('LoginPage - signIn error:', err);
       setError(err.message || 'Failed to sign in');
       setLoading(false);
     }
@@ -60,86 +71,84 @@ export function LoginPage() {
             Back to Home
           </Link>
 
-
-        <div className="mb-8">
-          <h1 className="text-3xl font-semibold text-gray-900 text-center mb-2">Welcome back</h1>
-          <p className="text-gray-600 text-center">Sign in to your Feedquire account</p>
-        </div>
-
-        {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-sm text-red-700">{error}</p>
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-900 mb-2">
-              Gmail Address
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="your.email@gmail.com"
-              required
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition"
-            />
+          <div className="mb-8">
+            <h1 className="text-3xl font-semibold text-gray-900 text-center mb-2">Welcome back</h1>
+            <p className="text-gray-600 text-center">Sign in to your Feedquire account</p>
           </div>
 
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-900 mb-2">
-              Password
-            </label>
-            <div className="relative">
-              <input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                required
-                className="w-full px-4 py-2.5 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 transition"
-              >
-                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-              </button>
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-sm text-red-700">{error}</p>
             </div>
-          </div>
+          )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-gray-900 text-white py-2.5 rounded-lg font-medium hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition mt-2 flex items-center justify-center gap-2"
-          >
-            {loading ? (
-              <>
-                <div className="flex gap-1">
-                  <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
-                  <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{animationDelay: '150ms'}}></div>
-                  <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{animationDelay: '300ms'}}></div>
-                </div>
-                <span>Signing in</span>
-              </>
-            ) : (
-              'Sign in'
-            )}
-          </button>
-        </form>
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-900 mb-2">
+                Gmail Address
+              </label>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="your.email@gmail.com"
+                required
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition"
+              />
+            </div>
 
-        <p className="text-center text-gray-600 text-sm mt-6">
-          Don't have an account?{' '}
-          <Link to="/signup" className="text-gray-900 font-medium hover:underline">
-            Sign up
-          </Link>
-        </p>
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-900 mb-2">
+                Password
+              </label>
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                  className="w-full px-4 py-2.5 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 transition"
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
+            </div>
 
-        
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-gray-900 text-white py-2.5 rounded-lg font-medium hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition mt-2 flex items-center justify-center gap-2"
+            >
+              {loading ? (
+                <>
+                  <div className="flex gap-1">
+                    <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
+                    <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{animationDelay: '150ms'}}></div>
+                    <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{animationDelay: '300ms'}}></div>
+                  </div>
+                  <span>Signing in</span>
+                </>
+              ) : (
+                'Sign in'
+              )}
+            </button>
+          </form>
+
+          <p className="text-center text-gray-600 text-sm mt-6">
+            Don't have an account?{' '}
+            <Link to="/signup" className="text-gray-900 font-medium hover:underline">
+              Sign up
+            </Link>
+          </p>
+
         </div>
       </div>
     </div>

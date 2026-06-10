@@ -11,8 +11,18 @@ export function CompanyLoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [loginSuccess, setLoginSuccess] = useState(false);
   const navigate = useNavigate();
-  const { signIn } = useAuth();
+  const { signIn, loading: authLoading } = useAuth();
+
+  useEffect(() => {
+    if (loginSuccess && !authLoading) {
+      const timeout = setTimeout(() => {
+        navigate('/company/dashboard');
+      }, 1000);
+      return () => clearTimeout(timeout);
+    }
+  }, [loginSuccess, authLoading, navigate]);
 
   useEffect(() => {
     document.title = 'Company Login - Feedquire';
@@ -25,9 +35,7 @@ export function CompanyLoginPage() {
 
     try {
       await signIn(email, password);
-      setTimeout(() => {
-        navigate('/company/dashboard');
-      }, 100);
+      setLoginSuccess(true);
       setLoading(false);
     } catch (err: any) {
       console.error('Login error:', err);
@@ -125,6 +133,7 @@ export function CompanyLoginPage() {
               Sign up
             </Link>
           </p>
+
         </div>
       </div>
     </div>
