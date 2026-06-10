@@ -20,7 +20,7 @@ serve(async (req) => {
     const tasksList = tasks.map(task => `<li><strong>${task.name}</strong> - $${task.amount}</li>`).join('');
 
     const { data, error } = await resend.emails.send({
-      from: "Feedquire <notifications@notifications.feedquire.com>",
+      from: "Feedquire <onboarding@resend.dev>",
       to: [to],
       subject: "New Tasks Available on Feedquire!",
       html: `
