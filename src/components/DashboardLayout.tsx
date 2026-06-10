@@ -158,16 +158,18 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         {/* Header */}
         <div className="bg-white/95 backdrop-blur border-b border-gray-200 sticky top-0 z-30 shadow-sm">
           <div className="px-4 lg:px-6 py-4 lg:py-6 h-16 lg:h-20 flex items-center justify-end gap-3">
-            <div className="flex items-center gap-3">
-              <p className="text-gray-600 text-sm">
-                Honored to have you, <span className="font-medium text-gray-900">{company?.company_name?.split(' ')[0] || profile?.full_name?.split(' ')[0] || 'User'}</span>
-              </p>
-              <div className="w-8 h-8 bg-gray-900 rounded-full flex items-center justify-center">
-                <span className="text-white text-sm font-medium">
-                  {(company?.company_name?.charAt(0) || profile?.full_name?.charAt(0) || 'U').toUpperCase()}
-                </span>
+            {(company || profile) && (
+              <div className="flex items-center gap-3">
+                <p className="text-gray-600 text-sm">
+                  Honored to have you, <span className="font-medium text-gray-900">{company?.company_name?.split(' ')[0] || profile?.full_name?.split(' ')[0]}</span>
+                </p>
+                <div className="w-8 h-8 bg-gray-900 rounded-full flex items-center justify-center">
+                  <span className="text-white text-sm font-medium">
+                    {(company?.company_name?.charAt(0) || profile?.full_name?.charAt(0)).toUpperCase()}
+                  </span>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
         {children}

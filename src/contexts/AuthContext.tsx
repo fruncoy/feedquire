@@ -26,20 +26,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
-  async function fetchProfileWithTimeout(userId: string, timeoutMs: number) {
-    let timeoutHandle: any;
-    const timeoutPromise = new Promise<void>((resolve) => {
-      timeoutHandle = setTimeout(() => {
-        console.warn('Profile fetch timeout, proceeding with UI');
-        setLoading(false);
-        resolve();
-      }, timeoutMs);
-    });
-    await Promise.race([fetchProfile(userId), timeoutPromise]);
-    clearTimeout(timeoutHandle);
+  console.log('AuthContext - Current state:', { user, profile, company, loading });
+
+  async function fetchProfile(userId: string) {
+    console.log('AuthContext - fetchProfile for userId:', userId);
+
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      console.log('AuthContext - fetchProfile result:', { data, error });
+
+      if (error || !data) {
+        console.log('AuthContext - no profile found or error, signing out user');
+        await signOut();
+        return;
+      }
+
+      console.log('AuthContext - profile found:', data);
+      setProfile(data as Profile);
+    } catch (error) {
+      console.error('AuthContext - fetchProfile error (catch block):', error);
+      await signOut();
+    }
   }
 
   async function fetchCompany(userId: string) {
+    console.log('AuthContext - fetchCompany for userId:', userId);
     try {
       const { data, error } = await supabase
         .from('companies')
@@ -47,22 +63,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .eq('user_id', userId)
         .maybeSingle();
 
+      console.log('AuthContext - fetchCompany result:', { data, error });
+
       if (!error) {
         setCompany(data as Company | null);
       } else {
-        console.error('Company fetch error:', error);
+        console.error('AuthContext - fetchCompany error:', error);
         setCompany(null);
       }
     } catch (error) {
-      console.error('Error in fetchCompany:', error);
+      console.error('AuthContext - fetchCompany error (catch block):', error);
       setCompany(null);
     }
   }
 
   useEffect(() => {
+    console.log('AuthContext - initializing');
     const initializeAuth = async () => {
       try {
         const { data } = await supabase.auth.getSession();
+        console.log('AuthContext - initial session:', data.session);
         setSession(data.session);
 
         if (data.session) {
@@ -73,27 +93,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             user_metadata: user.user_metadata,
           });
           setLoading(true);
-          
-          // First check if user is a company
+
           const { data: companyData } = await supabase
             .from('companies')
             .select('*')
             .eq('user_id', user.id)
             .maybeSingle();
-          
+
           if (companyData) {
+            console.log('AuthContext - initializing: user is company');
             setCompany(companyData);
             setProfile(null);
           } else {
-            await Promise.all([
-              fetchProfileWithTimeout(user.id, 4000),
-              fetchCompany(user.id)
-            ]);
+            console.log('AuthContext - initializing: fetching profile');
+            await fetchProfile(user.id);
           }
         }
       } catch (error) {
-        console.error('Error initializing auth:', error);
+        console.error('AuthContext - initializeAuth error:', error);
       } finally {
+        console.log('AuthContext - initializeAuth: setting loading to false');
         setLoading(false);
       }
     };
@@ -101,7 +120,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     initializeAuth();
 
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, newSession) => {
-      console.log('Auth state change:', event, newSession?.user?.email);
+      console.log('AuthContext - auth state changed:', event, 'newSession:', newSession?.user?.email);
       setSession(newSession);
 
       if (newSession) {
@@ -112,29 +131,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           user_metadata: user.user_metadata,
         });
         setLoading(true);
-        
-        // First check if user is a company
+
         const { data: companyData } = await supabase
           .from('companies')
           .select('*')
           .eq('user_id', user.id)
           .maybeSingle();
-        
+
         if (companyData) {
+          console.log('AuthContext - authStateChange: user is company');
           setCompany(companyData);
           setProfile(null);
         } else {
-          await Promise.all([
-            fetchProfileWithTimeout(user.id, 4000),
-            fetchCompany(user.id)
-          ]);
+          console.log('AuthContext - authStateChange: fetching profile');
+          await fetchProfile(user.id);
         }
       } else {
+        console.log('AuthContext - authStateChange: no session, clearing state');
         setUser(null);
         setProfile(null);
         setCompany(null);
         setLoading(false);
       }
+
+      console.log('AuthContext - authStateChange: setting loading to false');
+      setLoading(false);
     });
 
     return () => {
@@ -142,102 +163,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const fetchProfile = async (userId: string) => {
-    console.log('Fetching profile for:', userId);
-    
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', userId)
-        .maybeSingle();
-
-      console.log('Profile query result:', { data, error });
-
-      if (error) {
-        console.error('Profile fetch error:', error);
-        const { data: userData } = await supabase.auth.getUser();
-        const fallbackProfile: Profile = {
-          id: 'temp-' + userId,
-          user_id: userId,
-          full_name: userData.user?.user_metadata?.full_name || 'User',
-          role: 'user',
-          account_status: 'a7F9xQ2mP6kM4rT5',
-          verification_status: 'pending',
-          payment_status: 'unverified',
-          test_score: 0,
-          total_earned: 0,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        };
-        setProfile(fallbackProfile);
-        return;
-      }
-
-      if (!data) {
-        console.log('No profile found, creating one...');
-        const { data: userData } = await supabase.auth.getUser();
-        const fullName = userData.user?.user_metadata?.full_name || 'User';
-        
-        const { data: newProfile, error: createError } = await supabase
-          .from('profiles')
-          .insert({
-            user_id: userId,
-            full_name: fullName,
-            role: 'user',
-            account_status: 'a7F9xQ2mP6kM4rT5'
-          })
-          .select()
-          .single();
-
-        if (createError) {
-          console.error('Error creating profile:', createError);
-          const fallbackProfile: Profile = {
-            id: 'temp-' + userId,
-            user_id: userId,
-            full_name: fullName,
-            role: 'user',
-            account_status: 'a7F9xQ2mP6kM4rT5',
-            verification_status: 'pending',
-            payment_status: 'unverified',
-            test_score: 0,
-            total_earned: 0,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          };
-          setProfile(fallbackProfile);
-          return;
-        }
-
-        console.log('Profile created successfully:', newProfile);
-        setProfile(newProfile as Profile);
-        return;
-      }
-      
-      console.log('Profile found:', data);
-      setProfile(data as Profile);
-    } catch (error) {
-      console.error('Error in fetchProfile:', error);
-      const fallbackProfile: Profile = {
-        id: 'temp-' + userId,
-        user_id: userId,
-        full_name: 'User',
-        role: 'user',
-        account_status: 'a7F9xQ2mP6kM4rT5',
-        verification_status: 'pending',
-        payment_status: 'unverified',
-        test_score: 0,
-        total_earned: 0,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
-      setProfile(fallbackProfile);
-    }
-  };
-
   const signUp = async (name: string, email: string, password: string, phone?: string) => {
     try {
-      console.log('Signing up:', email);
+      console.log('AuthContext - signUp for email:', email);
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -258,51 +186,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           .eq('user_id', data.user.id);
       }
 
-      console.log('Signup successful:', data.user?.email);
+      console.log('AuthContext - signUp successful:', data.user?.email);
     } catch (error) {
-      console.error('Sign up error:', error);
+      console.error('AuthContext - signUp error:', error);
       throw error;
     }
   };
 
   const signIn = async (email: string, password: string) => {
     try {
-      console.log('Signing in:', email);
+      console.log('AuthContext - signIn for email:', email);
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) {
-        if (error.message.includes('Invalid login credentials')) {
-          throw new Error('Account doesn\'t exist. Please sign up instead.');
-        }
         throw error;
       }
 
-      console.log('Signin successful:', data.user?.email);
+      console.log('AuthContext - signIn successful:', data.user?.email);
     } catch (error) {
-      console.error('Sign in error:', error);
+      console.error('AuthContext - signIn error:', error);
       throw error;
     }
   };
 
   const signOut = async () => {
     try {
-      console.log('Signing out user');
+      console.log('AuthContext - signing out user');
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
-      
-      // Clear all state first
+
       setUser(null);
       setProfile(null);
       setCompany(null);
       setSession(null);
       setLoading(false);
-      
-      console.log('Sign out successful');
+
+      console.log('AuthContext - signOut successful');
     } catch (error) {
-      console.error('Sign out error:', error);
+      console.error('AuthContext - signOut error:', error);
       throw error;
     }
   };
