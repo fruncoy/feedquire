@@ -26,6 +26,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         <div className="flex flex-col items-center gap-4">
           <div className="w-8 h-8 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin"></div>
           <p className="text-gray-600">Loading...</p>
+          <button
+            onClick={handleLogout}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition"
+          >
+            Cancel & Log Out
+          </button>
         </div>
       </div>
     );
