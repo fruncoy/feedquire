@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { sendNewTasksEmailToAll } from '../lib/email';
-import { AIPlatform, Profile } from '../types';
+import { AIPlatform } from '../types';
 import { ChevronLeft, Plus, Trash2, Edit2, Mail, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '../components/DashboardLayout';
@@ -19,27 +19,10 @@ export function AdminPlatformsPage() {
   const [editingPlatform, setEditingPlatform] = useState<AIPlatform | null>(null);
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [sendingEmails, setSendingEmails] = useState(false);
-  const [users, setUsers] = useState<Profile[]>([]);
 
   useEffect(() => {
     fetchPlatforms();
-    fetchUsers();
   }, []);
-
-  const fetchUsers = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .neq('role', 'admin')
-        .neq('role', 'system_operator');
-      
-      if (error) throw error;
-      setUsers(data || []);
-    } catch (err) {
-      console.error('Error fetching users:', err);
-    }
-  };
 
   const fetchPlatforms = async () => {
     try {
@@ -388,7 +371,7 @@ export function AdminPlatformsPage() {
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
               >
                 <Mail size={16} />
-                {sendingEmails ? 'Sending...' : `Send to ${users.filter(u => u.email).length} Users`}
+                {sendingEmails ? 'Sending...' : 'Send New Tasks Email'}
               </button>
             </div>
           </div>
