@@ -10,15 +10,15 @@ interface UserFeatures {
 }
 
 export function usePermissions() {
-  const { profile, company, loading: authLoading } = useAuth();
+  const { profile, company, loading: authLoading, user } = useAuth();
   const [features, setFeatures] = useState<UserFeatures>({
-    tasks: false,
-    revisions: false,
-    assessment: false,
-    admin: false,
-    proFeatures: false
+    tasks: true,
+    revisions: true,
+    assessment: true,
+    admin: true,
+    proFeatures: true
   });
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // No loading for now for demo
 
   useEffect(() => {
     if (authLoading) {
@@ -29,32 +29,33 @@ export function usePermissions() {
       // Logic for user profiles
       const status = profile.account_status;
       setFeatures({
-        tasks: status === '1Q3bF8vL1nT9pB6wR' || status === '2hF2kQ7rD5xVfM1tZ',
-        revisions: status === '2hF2kQ7rD5xVfM1tZ',
-        assessment: status !== 'a7F9xQ2mP6kM4rT5',
-        admin: profile.role === 'system_operator' || profile.role === 'admin',
-        proFeatures: status === '2hF2kQ7rD5xVfM1tZ'
+        tasks: true, // Allow all for demo
+        revisions: true,
+        assessment: true,
+        admin: true,
+        proFeatures: true
       });
     } else if (company) {
       // Logic for company profiles
       setFeatures({
-        tasks: false,
-        revisions: false,
-        assessment: false,
-        admin: false,
-        proFeatures: false
+        tasks: true,
+        revisions: true,
+        assessment: true,
+        admin: true,
+        proFeatures: true
       });
     } else {
+      // If no profile/company yet, allow all for demo
       setFeatures({
-        tasks: false,
-        revisions: false,
-        assessment: false,
-        admin: false,
-        proFeatures: false
+        tasks: true,
+        revisions: true,
+        assessment: true,
+        admin: true,
+        proFeatures: true
       });
     }
     setLoading(false);
-  }, [profile, company, authLoading]);
+  }, [profile, company, authLoading, user]);
 
   const canAccessTasks = async (): Promise<boolean> => {
     return features.tasks;

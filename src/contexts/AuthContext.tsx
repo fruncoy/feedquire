@@ -82,11 +82,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     console.log('AuthContext - initializing');
     
-    // Safety timeout: force loading to false after 15 seconds to avoid infinite load
+    // Safety timeout: force loading to false after 5 seconds to avoid infinite load
     const safetyTimeout = setTimeout(() => {
       console.log('AuthContext - safety timeout triggered');
       setLoading(false);
-    }, 15000);
+    }, 5000);
 
     const initializeAuth = async () => {
       try {
@@ -101,20 +101,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             email: user.email || '',
             user_metadata: user.user_metadata,
           });
-          // First check if user is a company or user
-          const { data: companyData } = await supabase
-            .from('companies')
-            .select('*')
-            .eq('user_id', user.id)
-            .maybeSingle();
-          if (companyData) {
-            console.log('AuthContext - initializing: user is company');
-            setCompany(companyData);
-            setProfile(null);
-          } else {
-            console.log('AuthContext - initializing: fetching profile');
-            await fetchProfile(user.id);
-          }
+          // Try to fetch company/profile, but don't block app loading
+          fetchCompanyAndProfile(user.id).catch(err => {
+            console.warn('AuthContext - initial fetch failed:', err);
+          });
         }
       } catch (error) {
         console.error('AuthContext - initializeAuth error:', error);
@@ -130,7 +120,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, newSession) => {
       console.log('AuthContext - auth state changed:', event, 'newSession:', newSession?.user?.email);
       setSession(newSession);
-      setLoading(true);
 
       if (newSession) {
         const user = newSession.user;
@@ -139,28 +128,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           email: user.email || '',
           user_metadata: user.user_metadata,
         });
-        // First check if user is a company
-        const { data: companyData } = await supabase
-          .from('companies')
-          .select('*')
-          .eq('user_id', user.id)
-          .maybeSingle();
-        if (companyData) {
-          console.log('AuthContext - authStateChange: user is company');
-          setCompany(companyData);
-          setProfile(null);
-        } else {
-          console.log('AuthContext - authStateChange: fetching profile');
-          await fetchProfile(user.id);
-        }
+        // Try to fetch company/profile, but don't block app loading
+        fetchCompanyAndProfile(user.id).catch(err => {
+          console.warn('AuthContext - auth change fetch failed:', err);
+        });
       } else {
         console.log('AuthContext - authStateChange: no session, clearing state');
         setUser(null);
         setProfile(null);
         setCompany(null);
       }
-
-      console.log('AuthContext - authStateChange: setting loading to false');
       setLoading(false);
     });
 
@@ -168,6 +145,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       authListener?.subscription.unsubscribe();
     };
   }, []);
+
+  // Helper function to fetch both company and profile without blocking app
+  const fetchCompanyAndProfile = async (userId: string) => {
+    try {
+      console.log('AuthContext - fetching company and profile for:', userId);
+      const { data: companyData } = await supabase
+        .from('companies')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle();
+      
+      if (companyData) {
+        console.log('AuthContext - found company:', companyData);
+        setCompany(companyData);
+        setProfile(null);
+      } else {
+        console.log('AuthContext - no company, fetching profile');
+        await fetchProfile(userId);
+      }
+    } catch (err) {
+      console.error('AuthContext - fetchCompanyAndProfile error:', err);
+    }
+  };
 
   const signUp = async (name: string, email: string, password: string, phone?: string) => {
     try {
