@@ -21,13 +21,8 @@ export function ProtectedRoute({ children, requiredRole, requiredStatus, minTier
   const isAdminPage = adminPages.some(page => window.location.pathname.startsWith(page));
   const isCompanyPage = companyPages.some(page => window.location.pathname.startsWith(page));
   
-  const requiresStrictProfile = Boolean(requiredRole || requiredStatus || minTier);
-  
-  // While loading, allow non-strict pages to render; keep spinner for strict routes
+  // Always show loading spinner first while auth is loading
   if (loading) {
-    if (!requiresStrictProfile) {
-      return <>{children}</>;
-    }
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="flex flex-col items-center gap-4">
@@ -43,13 +38,8 @@ export function ProtectedRoute({ children, requiredRole, requiredStatus, minTier
     return <Navigate to="/login" replace />;
   }
 
-  // If user exists but no profile/company loaded, allow rendering unless strict checks are required
-  if (user && !profile && !company && !requiresStrictProfile) {
-    return <>{children}</>;
-  }
-  
-  // If strict checks are required, wait for profile or company
-  if (user && !profile && !company && requiresStrictProfile) {
+  // If we have a user but no profile AND no company, wait or sign out
+  if (!profile && !company) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
