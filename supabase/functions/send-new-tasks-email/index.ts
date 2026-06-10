@@ -4,25 +4,36 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
 };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
+  console.log("Received new tasks email request:", req.method);
+  
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
   try {
     const { to, name, tasks } = await req.json();
+    console.log("Sending new tasks email to:", to, name, tasks);
+    
     const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-
+    
     if (!RESEND_API_KEY) {
-      throw new Error("RESEND_API_KEY is not set");
+      console.error("RESEND_API_KEY is not set!");
+      return new Response(
+        JSON.stringify({ success: false, error: "RESEND_API_KEY not set" }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, "Content-Type": "application/json" }
+        }
+      );
     }
 
-    const tasksList = tasks.map(task => `<li><strong>${task.name}</strong> - $${task.amount}</li>`).join('');
+    const tasksList = tasks.map((task: any) => `<li><strong>${task.name}</strong> - $${task.amount}</li>`).join('');
 
-    const response = await fetch("https://api.resend.com/emails", {
+    const resendResponse = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -33,61 +44,47 @@ serve(async (req) => {
         to: [to],
         subject: "New Tasks Available on Feedquire!",
         html: `
-          <!DOCTYPE html>
-          <html>
-          <head>
-            <style>
-              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-              .header { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 30px; text-align: center; border-radius: 10px; }
-              .content { padding: 20px; }
-              .button { display: inline-block; background: #10b981; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
-              .footer { text-align: center; color: #888; font-size: 12px; margin-top: 30px; }
-            </style>
-          </head>
-          <body>
-            <div class="container">
-              <div class="header">
-                <h1>New Tasks Available! 🚀</h1>
-              </div>
-              <div class="content">
-                <p>Hi ${name},</p>
-                <p>Great news! There are new tasks available for you on Feedquire:</p>
-                <ul>
-                  ${tasksList}
-                </ul>
-                <a href="https://feedquire.com/dashboard" class="button">Claim Tasks Now</a>
-                <p>Don't wait - tasks are limited!</p>
-                <p>— The Feedquire Team</p>
-              </div>
-              <div class="footer">
-                <p>Feedquire © 2024 | All rights reserved</p>
-              </div>
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 30px; text-align: center; border-radius: 10px;">
+              <h1>New Tasks Available! 🚀</h1>
             </div>
-          </body>
-          </html>
+            <div style="padding: 20px;">
+              <p>Hi ${name},</p>
+              <p>Great news! There are new tasks available for you on Feedquire:</p>
+              <ul>
+                ${tasksList}
+              </ul>
+              <p>Don't wait - tasks are limited!</p>
+              <p>— The Feedquire Team</p>
+            </div>
+          </div>
         `,
       }),
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Resend API error:", response.status, errorText);
-      throw new Error(`Resend API error: ${response.status}`);
+    console.log("Resend API status for new tasks:", resendResponse.status);
+    
+    if (!resendResponse.ok) {
+      const errorText = await resendResponse.text();
+      console.error("Resend API error (new tasks):", resendResponse.status, errorText);
+      throw new Error(`Resend API error: ${resendResponse.status}`);
     }
 
-    const data = await response.json();
-    console.log("New tasks email sent:", data);
-
+    const data = await resendResponse.json();
+    console.log("New tasks email sent successfully:", data);
+    
     return new Response(
       JSON.stringify({ success: true, data }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { headers: { ...corsHeaders, "Content-Type": "application/json" }
     );
   } catch (error) {
-    console.error("Error:", error);
+    console.error("New tasks email function error:", error);
     return new Response(
-      JSON.stringify({ success: false, error: error.message }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({ success: false, error: (error as Error).message }),
+      { 
+        status: 500, 
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
+      }
     );
   }
 });
