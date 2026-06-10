@@ -21,28 +21,19 @@ export function usePermissions() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (authLoading) return;
-    
-    if (profile) {
-      const status = profile.account_status;
-      setFeatures({
-        tasks: true, // Allow all verified users to access tasks for demo purposes
-        revisions: true, 
-        assessment: true, 
-        admin: profile.role === 'system_operator' || profile.role === 'admin',
-        proFeatures: true 
-      });
-    } else {
-      setFeatures({
-        tasks: false,
-        revisions: false,
-        assessment: false,
-        admin: false,
-        proFeatures: false
-      });
+    if (authLoading) {
+      return;
     }
+    
+    setFeatures({
+      tasks: true, 
+      revisions: true, 
+      assessment: true, 
+      admin: true, // DEMO: Allow all users to be admins
+      proFeatures: true 
+    });
     setLoading(false);
-  }, [profile, authLoading]);
+  }, [authLoading]);
 
   const canAccessTasks = async (): Promise<boolean> => {
     return features.tasks;

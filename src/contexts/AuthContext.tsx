@@ -42,22 +42,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.log('AuthContext - fetchProfile result:', { data, error });
 
       if (error || !data) {
-        console.log('AuthContext - no profile found or error, signing out user');
+        console.log('AuthContext - no profile found or error (DEMO: NOT signing out)');
         setLoading(false);
-        if (!isSigningOut) {
-          await signOut();
-        }
+        // For demo purposes, don't sign out
         return;
       }
 
       console.log('AuthContext - profile found:', data);
       setProfile(data as Profile);
     } catch (error) {
-      console.error('AuthContext - fetchProfile error (catch block):', error);
+      console.error('AuthContext - fetchProfile error (catch block) (DEMO: NOT signing out):', error);
       setLoading(false);
-      if (!isSigningOut) {
-        await signOut();
-      }
     }
   }
 
