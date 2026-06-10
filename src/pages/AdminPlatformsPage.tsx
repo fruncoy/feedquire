@@ -1,8 +1,10 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { AIPlatform } from '../types';
-import { ChevronLeft, Plus, Trash2, Edit2 } from 'lucide-react';
+import { sendNewTasksEmailToAll } from '../lib/email';
+import { AIPlatform, Profile } from '../types';
+import { ChevronLeft, Plus, Trash2, Edit2, Mail, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '../components/DashboardLayout';
 
@@ -15,10 +17,29 @@ export function AdminPlatformsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [platformStats, setPlatformStats] = useState<Record<string, { approved: number; rejected: number; pending: number }>>({});
   const [editingPlatform, setEditingPlatform] = useState<AIPlatform | null>(null);
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [sendingEmails, setSendingEmails] = useState(false);
+  const [users, setUsers] = useState<Profile[]>([]);
 
   useEffect(() => {
     fetchPlatforms();
+    fetchUsers();
   }, []);
+
+  const fetchUsers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .neq('role', 'admin')
+        .neq('role', 'system_operator');
+      
+      if (error) throw error;
+      setUsers(data || []);
+    } catch (err) {
+      console.error('Error fetching users:', err);
+    }
+  };
 
   const fetchPlatforms = async () => {
     try {
@@ -122,6 +143,20 @@ export function AdminPlatformsPage() {
     }
   };
 
+  const handleSendEmails = async () => {
+    setSendingEmails(true);
+    try {
+      const result = await sendNewTasksEmailToAll();
+      alert(`Emails sent successfully! Sent to ${result.sentEmailsCount} users.`);
+      setShowEmailModal(false);
+    } catch (err) {
+      console.error('Error sending emails:', err);
+      alert('Error sending emails');
+    } finally {
+      setSendingEmails(false);
+    }
+  };
+
   if (loading) {
     return (
       <DashboardLayout>
@@ -162,7 +197,14 @@ export function AdminPlatformsPage() {
   return (
     <DashboardLayout>
       <div className="p-6">
-        <div className="flex justify-end mb-6">
+        <div className="flex justify-end mb-6 gap-3">
+          <button
+            onClick={() => setShowEmailModal(true)}
+            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition"
+          >
+            <Mail size={18} />
+            Send New Tasks Email
+          </button>
           <button
             onClick={() => {
               setShowForm(!showForm);
@@ -313,6 +355,45 @@ export function AdminPlatformsPage() {
           </div>
         </div>
       </div>
+
+      {/* Send New Tasks Email Modal */}
+      {showEmailModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-8 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold text-gray-900">Send New Tasks Email</h2>
+              <button
+                onClick={() => setShowEmailModal(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            <div className="space-y-4 mb-6">
+              <p className="text-gray-600">This will send an email to all users with the currently active tasks from the system.</p>
+            </div>
+
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setShowEmailModal(false)}
+                disabled={sendingEmails}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSendEmails}
+                disabled={sendingEmails}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
+              >
+                <Mail size={16} />
+                {sendingEmails ? 'Sending...' : `Send to ${users.filter(u => u.email).length} Users`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 }

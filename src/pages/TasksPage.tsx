@@ -5,9 +5,8 @@ import { DashboardLayout } from '../components/DashboardLayout';
 import { useAuth } from '../contexts/AuthContext';
 import { usePermissions } from '../hooks/usePermissions';
 import { supabase } from '../lib/supabase';
-import { sendNewTasksEmailToAll } from '../lib/email';
-import { AIPlatform, FeedbackSubmission, Profile } from '../types';
-import { ChevronRight, CheckCircle2, Mail, X } from 'lucide-react';
+import { AIPlatform, FeedbackSubmission } from '../types';
+import { ChevronRight, CheckCircle2 } from 'lucide-react';
 import { MetaPixelEvents } from '../lib/metaPixel';
 
 export function TasksPage() {
@@ -17,9 +16,6 @@ export function TasksPage() {
   const [platforms, setPlatforms] = useState<Record<string, AIPlatform>>({});
   const [submissions, setSubmissions] = useState<Record<string, FeedbackSubmission>>({});
   const [loading, setLoading] = useState(true);
-  const [showEmailModal, setShowEmailModal] = useState(false);
-  const [sendingEmails, setSendingEmails] = useState(false);
-  const [users, setUsers] = useState<Profile[]>([]);
 
   useEffect(() => {
     if (!user) return;
@@ -30,7 +26,6 @@ export function TasksPage() {
     try {
       if (!user) return;
 
-      // Fetch active tasks
       const { data: platformData, error: platformError } = await supabase
         .from('ai_platforms')
         .select('*')
@@ -44,7 +39,6 @@ export function TasksPage() {
       });
       setPlatforms(platformMap);
 
-      // Fetch user submissions
       const { data: submissionData, error: submissionError } = await supabase
         .from('feedback_submissions')
         .select('*')
@@ -57,36 +51,10 @@ export function TasksPage() {
         submissionMap[s.platform_id] = s as FeedbackSubmission;
       });
       setSubmissions(submissionMap);
-
-      // If user is admin, fetch all users for email count
-      if (features.admin) {
-        const { data: usersData, error: usersError } = await supabase
-          .from('profiles')
-          .select('*')
-          .neq('role', 'admin')
-          .neq('role', 'system_operator');
-        if (!usersError) {
-          setUsers(usersData || []);
-        }
-      }
     } catch (err) {
       console.error('Error fetching tasks:', err);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleSendEmails = async () => {
-    setSendingEmails(true);
-    try {
-      const result = await sendNewTasksEmailToAll();
-      alert(`Emails sent successfully! Sent to ${result.sentEmailsCount} users.`);
-      setShowEmailModal(false);
-    } catch (err) {
-      console.error('Error sending emails:', err);
-      alert('Error sending emails');
-    } finally {
-      setSendingEmails(false);
     }
   };
 
@@ -111,19 +79,6 @@ export function TasksPage() {
   return (
     <DashboardLayout>
       <div className="p-6">
-        {/* Admin: Send New Tasks Email Button */}
-        {features.admin && (
-          <div className="mb-6 flex justify-end">
-            <button
-              onClick={() => setShowEmailModal(true)}
-              className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
-            >
-              <Mail size={18} />
-              Send New Tasks Email
-            </button>
-          </div>
-        )}
-        
         {loading ? (
           <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
             <div className="w-8 h-8 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin mx-auto mb-4"></div>
@@ -188,45 +143,6 @@ export function TasksPage() {
           </div>
         )}
       </div>
-
-      {/* Send New Tasks Email Modal */}
-      {showEmailModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-8 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-gray-900">Send New Tasks Email</h2>
-              <button
-                onClick={() => setShowEmailModal(false)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                <X size={24} />
-              </button>
-            </div>
-
-            <div className="space-y-4 mb-6">
-              <p className="text-gray-600">This will send an email to all users with the currently active tasks from the system.</p>
-            </div>
-
-            <div className="flex gap-3 justify-end">
-              <button
-                onClick={() => setShowEmailModal(false)}
-                disabled={sendingEmails}
-                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSendEmails}
-                disabled={sendingEmails}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
-              >
-                <Mail size={16} />
-                {sendingEmails ? 'Sending...' : `Send to ${users.filter(u => u.email).length} Users`}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </DashboardLayout>
   );
 }
