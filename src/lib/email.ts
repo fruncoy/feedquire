@@ -16,17 +16,17 @@ export async function sendWelcomeEmail(to: string, name: string) {
   }
 }
 
-export async function sendNewTasksEmail(to: string, name: string, tasks: Array<{ name: string; amount: number }>) {
+export async function sendNewTasksEmailToAll() {
   try {
     const { data, error } = await supabase.functions.invoke("send-new-tasks-email", {
-      body: { to, name, tasks },
+      body: { sendToAll: true },
     });
 
     if (error) throw error;
-    console.log("New tasks email sent successfully!", data);
+    console.log("New tasks emails sent successfully!", data);
     return data;
   } catch (error) {
-    console.error("Error sending new tasks email:", error);
+    console.error("Error sending new tasks emails:", error);
     throw error;
   }
 }
