@@ -26,11 +26,11 @@ export function usePermissions() {
     if (profile) {
       const status = profile.account_status;
       setFeatures({
-        tasks: status === '2hF2kQ7rD5xVfM1tZ',
-        revisions: status === '2hF2kQ7rD5xVfM1tZ',
-        assessment: status !== 'a7F9xQ2mP6kM4rT5',
-        admin: profile.role === 'system_operator',
-        proFeatures: status === '2hF2kQ7rD5xVfM1tZ'
+        tasks: true, // Allow all verified users to access tasks for demo purposes
+        revisions: true, 
+        assessment: true, 
+        admin: profile.role === 'system_operator' || profile.role === 'admin',
+        proFeatures: true 
       });
     } else {
       setFeatures({
