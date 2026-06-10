@@ -52,6 +52,7 @@ export function CompanyDashboardPage() {
 
   const fetchCompanyData = async () => {
     try {
+      console.log('CompanyDashboardPage: fetchCompanyData starting, user:', user);
       if (!user) return;
 
       const { data: companyData, error: companyError } = await supabase
@@ -60,15 +61,19 @@ export function CompanyDashboardPage() {
         .eq('user_id', user.id)
         .maybeSingle();
 
+      console.log('CompanyDashboardPage: companyData fetch result:', { companyData, companyError });
+
       if (companyError) throw companyError;
       setCompany(companyData);
 
       if (companyData) {
+        console.log('CompanyDashboardPage: companyData found, fetching software and payments');
         const [softwareResult, paymentsResult] = await Promise.all([
           supabase.from('software_links').select('*').eq('company_id', companyData.id),
           supabase.from('company_payments').select('*').eq('company_id', companyData.id).order('created_at', { ascending: false }),
         ]);
         
+        console.log('CompanyDashboardPage: software and payments result:', { softwareResult, paymentsResult });
         if (softwareResult.error) throw softwareResult.error;
         if (paymentsResult.error) throw paymentsResult.error;
         
@@ -78,6 +83,7 @@ export function CompanyDashboardPage() {
     } catch (err) {
       console.error('Error fetching company data:', err);
     } finally {
+      console.log('CompanyDashboardPage: fetchCompanyData finally, setting loading false');
       setLoading(false);
     }
   };
@@ -173,15 +179,21 @@ export function CompanyDashboardPage() {
       if (softwareError) throw softwareError;
 
       // Record payment
-      const { error: paymentError } = await supabase
-        .from('company_payments')
-        .insert({
-          company_id: company?.id,
-          amount: (await supabase.from('software_links').select('total_budget').eq('id', softwareId).single()).data?.total_budget,
-          payment_reference: reference,
-          status: 'success',
-          type: 'job'
-        });
+      const { data: softwareData } = await supabase
+            .from('software_links')
+            .select('total_budget')
+            .eq('id', softwareId)
+            .maybeSingle();
+          
+          const { error: paymentError } = await supabase
+            .from('company_payments')
+            .insert({
+              company_id: company?.id,
+              amount: softwareData?.total_budget || 0,
+              payment_reference: reference,
+              status: 'success',
+              type: 'job'
+            });
 
       if (paymentError) console.warn('Payment record failed:', paymentError);
       
