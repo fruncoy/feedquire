@@ -86,6 +86,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     console.log('AuthContext - initializing');
+    
+    // Safety timeout: force loading to false after 15 seconds to avoid infinite load
+    const safetyTimeout = setTimeout(() => {
+      console.log('AuthContext - safety timeout triggered');
+      setLoading(false);
+    }, 15000);
+
     const initializeAuth = async () => {
       try {
         const { data } = await supabase.auth.getSession();
@@ -121,6 +128,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } finally {
         console.log('AuthContext - initializeAuth: setting loading to false');
         setLoading(false);
+        clearTimeout(safetyTimeout);
       }
     };
 
