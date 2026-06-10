@@ -122,11 +122,25 @@ serve(async (req) => {
       );
     }
 
-    const tasksList = activeTasks.map((task: any) => `<li><strong>${task.name}</strong> - $${task.amount} - ${task.description.substring(0, 50)}...</li>`).join('');
+    const tasksList = activeTasks.map((task: any) => {
+      const safeDescription = (task.description && typeof task.description === 'string') 
+        ? task.description.substring(0, 50)
+        : 'New task available';
+      return `<li><strong>${task.name}</strong> - $${task.amount} - ${safeDescription}...</li>`;
+    }).join('');
 
     const sentEmails: any[] = [];
     for (const user of users) {
-      if (!user.email) continue;
+      // Validate user has a valid email
+      if (!user.email || typeof user.email !== 'string' || user.email.trim() === '') {
+        console.warn('Skipping user - missing or invalid email:', user);
+        continue;
+      }
+      
+      // Use a default name if full_name is missing
+      const userName = user.full_name && typeof user.full_name === 'string' && user.full_name.trim() !== '' 
+        ? user.full_name 
+        : 'there';
       
       const resendResponse = await fetch("https://api.resend.com/emails", {
         method: "POST",
@@ -136,7 +150,7 @@ serve(async (req) => {
         },
         body: JSON.stringify({
           from: "Feedquire <notifications@feedquire.com>",
-          to: [user.email],
+          to: user.email,
           subject: "New Tasks Available on Feedquire!",
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
@@ -144,7 +158,7 @@ serve(async (req) => {
                 <h1>New Tasks Available! 🚀</h1>
               </div>
               <div style="padding: 20px;">
-                <p>Hi ${user.full_name},</p>
+                <p>Hi ${userName},</p>
                 <p>Great news! There are new tasks available for you on Feedquire:</p>
                 <ul>
                   ${tasksList}
