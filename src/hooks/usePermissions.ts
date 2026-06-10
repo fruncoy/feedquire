@@ -12,13 +12,13 @@ interface UserFeatures {
 export function usePermissions() {
   const { profile, company, loading: authLoading, user } = useAuth();
   const [features, setFeatures] = useState<UserFeatures>({
-    tasks: true,
-    revisions: true,
-    assessment: true,
-    admin: true,
-    proFeatures: true
+    tasks: false,
+    revisions: false,
+    assessment: false,
+    admin: false,
+    proFeatures: false
   });
-  const [loading, setLoading] = useState(false); // No loading for now for demo
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (authLoading) {
@@ -26,32 +26,29 @@ export function usePermissions() {
     }
     
     if (profile) {
-      // Logic for user profiles
       const status = profile.account_status;
       setFeatures({
-        tasks: true, // Allow all for demo
-        revisions: true,
-        assessment: true,
-        admin: true,
-        proFeatures: true
+        tasks: status === '2hF2kQ7rD5xVfM1tZ', // tier3
+        revisions: status === '2hF2kQ7rD5xVfM1tZ', // tier3
+        assessment: status !== 'a7F9xQ2mP6kM4rT5', // not tier1
+        admin: profile.role === 'system_operator',
+        proFeatures: status === '2hF2kQ7rD5xVfM1tZ' // tier3
       });
     } else if (company) {
-      // Logic for company profiles
       setFeatures({
-        tasks: true,
-        revisions: true,
-        assessment: true,
-        admin: true,
-        proFeatures: true
+        tasks: company.account_status === 'verified',
+        revisions: company.account_status === 'verified',
+        assessment: false,
+        admin: false,
+        proFeatures: company.account_status === 'verified'
       });
     } else {
-      // If no profile/company yet, allow all for demo
       setFeatures({
-        tasks: true,
-        revisions: true,
-        assessment: true,
-        admin: true,
-        proFeatures: true
+        tasks: false,
+        revisions: false,
+        assessment: false,
+        admin: false,
+        proFeatures: false
       });
     }
     setLoading(false);
