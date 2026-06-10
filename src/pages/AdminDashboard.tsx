@@ -3,7 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { DashboardLayout } from '../components/DashboardLayout';
-import { Users, Package, ClipboardList, TrendingUp } from 'lucide-react';
+import { Users, Package, ClipboardList, TrendingUp, Mail, X } from 'lucide-react';
+import { sendNewTasksEmail } from '../lib/email';
+import { Profile } from '../types';
 
 export function AdminDashboard() {
   const navigate = useNavigate();
@@ -14,18 +16,35 @@ export function AdminDashboard() {
     tier2Users: 0,
     tier3Users: 0,
     totalReceived: 0,
-
-
     pendingSubmissions: 0,
     approvedSubmissions: 0,
     rejectedSubmissions: 0,
-
   });
   const [loading, setLoading] = useState(true);
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [tasks, setTasks] = useState([{ name: '', amount: 0 }]);
+  const [sendingEmails, setSendingEmails] = useState(false);
+  const [users, setUsers] = useState<Profile[]>([]);
 
   useEffect(() => {
     fetchStats();
+    fetchUsers();
   }, []);
+
+  const fetchUsers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .neq('role', 'admin')
+        .neq('role', 'system_operator');
+      
+      if (error) throw error;
+      setUsers(data || []);
+    } catch (err) {
+      console.error('Error fetching users:', err);
+    }
+  };
 
   const fetchStats = async () => {
     try {
@@ -77,6 +96,51 @@ supabase.from('feedback_submissions').select('*', { count: 'exact', head: true }
   const handleLogout = async () => {
     await signOut();
     navigate('/authy');
+  };
+
+  const addTask = () => {
+    setTasks([...tasks, { name: '', amount: 0 }]);
+  };
+
+  const removeTask = (index: number) => {
+    setTasks(tasks.filter((_, i) => i !== index));
+  };
+
+  const updateTask = (index: number, field: 'name' | 'amount', value: string | number) => {
+    const newTasks = [...tasks];
+    newTasks[index][field] = value as any;
+    setTasks(newTasks);
+  };
+
+  const handleSendEmails = async () => {
+    const validTasks = tasks.filter(t => t.name.trim() && t.amount > 0);
+    if (validTasks.length === 0) {
+      alert('Please add at least one valid task');
+      return;
+    }
+
+    setSendingEmails(true);
+    try {
+      // Filter users that have an email
+      const usersWithEmail = users.filter(u => u.email);
+      
+      for (const user of usersWithEmail) {
+        if (user.email) {
+          await sendNewTasksEmail(user.email, user.full_name || 'User', validTasks);
+          // Add small delay to avoid rate limits
+          await new Promise(resolve => setTimeout(resolve, 200));
+        }
+      }
+      
+      alert('Emails sent successfully!');
+      setShowEmailModal(false);
+      setTasks([{ name: '', amount: 0 }]);
+    } catch (err) {
+      console.error('Error sending emails:', err);
+      alert('Error sending emails');
+    } finally {
+      setSendingEmails(false);
+    }
   };
 
   const statCards = [
@@ -144,6 +208,17 @@ supabase.from('feedback_submissions').select('*', { count: 'exact', head: true }
   return (
     <DashboardLayout>
       <div className="p-6">
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
+          <button
+            onClick={() => setShowEmailModal(true)}
+            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+          >
+            <Mail size={18} />
+            Send New Tasks Email
+          </button>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-12">
           {loading ? (
             // Skeleton loading
@@ -175,9 +250,84 @@ supabase.from('feedback_submissions').select('*', { count: 'exact', head: true }
             })
           )}
         </div>
-
-
       </div>
+
+      {/* Email Modal */}
+      {showEmailModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-8 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold text-gray-900">Send New Tasks Email</h2>
+              <button
+                onClick={() => setShowEmailModal(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            <div className="space-y-4 mb-6">
+              <h3 className="font-medium text-gray-700">Tasks to Announce</h3>
+              
+              {tasks.map((task, index) => (
+                <div key={index} className="flex gap-3 items-start">
+                  <div className="flex-1 space-y-2">
+                    <input
+                      type="text"
+                      placeholder="Task name"
+                      value={task.name}
+                      onChange={(e) => updateTask(index, 'name', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                    />
+                    <input
+                      type="number"
+                      placeholder="Amount ($)"
+                      value={task.amount}
+                      onChange={(e) => updateTask(index, 'amount', parseFloat(e.target.value) || 0)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                      min="0"
+                      step="0.01"
+                    />
+                  </div>
+                  {tasks.length > 1 && (
+                    <button
+                      onClick={() => removeTask(index)}
+                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                    >
+                      <X size={18} />
+                    </button>
+                  )}
+                </div>
+              ))}
+
+              <button
+                onClick={addTask}
+                className="w-full py-2 border border-dashed border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50"
+              >
+                + Add Another Task
+              </button>
+            </div>
+
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setShowEmailModal(false)}
+                disabled={sendingEmails}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSendEmails}
+                disabled={sendingEmails}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
+              >
+                <Mail size={16} />
+                {sendingEmails ? 'Sending...' : `Send to ${users.filter(u => u.email).length} Users`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 }
