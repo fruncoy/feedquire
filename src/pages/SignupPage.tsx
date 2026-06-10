@@ -4,6 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { CheckCircle, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { MetaPixelEvents } from '../lib/metaPixel';
+import { sendWelcomeEmail } from '../lib/email';
 import homeImg from '../assets/home.png';
 
 export function SignupPage() {
@@ -76,6 +77,16 @@ export function SignupPage() {
     try {
       await signUp(name, email, password, phone);
       MetaPixelEvents.completeRegistration('email');
+      
+      // Send welcome email
+      try {
+        await sendWelcomeEmail(email, name);
+        console.log('Welcome email sent successfully!');
+      } catch (emailErr) {
+        console.error('Failed to send welcome email:', emailErr);
+        // Don't fail the signup if email fails
+      }
+      
       setShowSuccess(true);
       setLoading(false);
     } catch (err: any) {

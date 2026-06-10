@@ -8,7 +8,7 @@ serve(async (req) => {
 
   try {
     const { data, error } = await resend.emails.send({
-      from: "Feedquire <noreply@feedquire.com>",
+      from: "Feedquire <onboarding@resend.dev>",
       to: [to],
       subject: "New Tasks Available on Feedquire!",
       html: `
