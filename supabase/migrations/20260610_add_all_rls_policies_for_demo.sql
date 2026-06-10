@@ -8,6 +8,19 @@ ALTER TABLE software_links ENABLE ROW LEVEL SECURITY;
 ALTER TABLE company_payments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE feedback_submissions ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies to avoid duplicates
+DROP POLICY IF EXISTS "Enable read access for authenticated users" ON profiles;
+DROP POLICY IF EXISTS "Enable read access for authenticated users" ON companies;
+DROP POLICY IF EXISTS "Enable read access for authenticated users" ON software_links;
+DROP POLICY IF EXISTS "Enable read access for authenticated users" ON company_payments;
+DROP POLICY IF EXISTS "Enable read access for authenticated users" ON feedback_submissions;
+
+DROP POLICY IF EXISTS "Enable all access for authenticated users" ON profiles;
+DROP POLICY IF EXISTS "Enable all access for authenticated users" ON companies;
+DROP POLICY IF EXISTS "Enable all access for authenticated users" ON software_links;
+DROP POLICY IF EXISTS "Enable all access for authenticated users" ON company_payments;
+DROP POLICY IF EXISTS "Enable all access for authenticated users" ON feedback_submissions;
+
 -- Allow all authenticated users to SELECT from all tables
 CREATE POLICY "Enable read access for authenticated users" ON profiles FOR SELECT USING (auth.uid() IS NOT NULL);
 CREATE POLICY "Enable read access for authenticated users" ON companies FOR SELECT USING (auth.uid() IS NOT NULL);
