@@ -101,22 +101,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             email: user.email || '',
             user_metadata: user.user_metadata,
           });
-          setLoading(true);
-
-          const { data: companyData } = await supabase
-            .from('companies')
-            .select('*')
-            .eq('user_id', user.id)
-            .maybeSingle();
-
-          if (companyData) {
-            console.log('AuthContext - initializing: user is company');
-            setCompany(companyData);
-            setProfile(null);
-          } else {
-            console.log('AuthContext - initializing: fetching profile');
-            await fetchProfile(user.id);
-          }
         }
       } catch (error) {
         console.error('AuthContext - initializeAuth error:', error);
@@ -140,22 +124,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           email: user.email || '',
           user_metadata: user.user_metadata,
         });
-        setLoading(true);
-
-        const { data: companyData } = await supabase
-          .from('companies')
-          .select('*')
-          .eq('user_id', user.id)
-          .maybeSingle();
-
-        if (companyData) {
-          console.log('AuthContext - authStateChange: user is company');
-          setCompany(companyData);
-          setProfile(null);
-        } else {
-          console.log('AuthContext - authStateChange: fetching profile');
-          await fetchProfile(user.id);
-        }
       } else {
         console.log('AuthContext - authStateChange: no session, clearing state');
         setUser(null);
