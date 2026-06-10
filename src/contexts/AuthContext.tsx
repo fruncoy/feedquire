@@ -151,7 +151,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(null);
         setProfile(null);
         setCompany(null);
-        setLoading(false);
       }
 
       console.log('AuthContext - authStateChange: setting loading to false');
