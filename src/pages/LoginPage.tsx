@@ -17,6 +17,7 @@ export function LoginPage() {
   const { signIn, loading: authLoading, user, company, profile } = useAuth();
 
   useEffect(() => {
+    console.log('LoginPage state:', { user, authLoading, company, profile });
     // If user is already logged in, redirect to dashboard
     if (user && !authLoading) {
       if (company) {

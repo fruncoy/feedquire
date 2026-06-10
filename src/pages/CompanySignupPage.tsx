@@ -17,9 +17,10 @@ export function CompanySignupPage() {
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const navigate = useNavigate();
-  const { user, loading: authLoading, company } = useAuth();
+  const { user, loading: authLoading, company, refreshCompany } = useAuth();
 
   useEffect(() => {
+    console.log('CompanySignupPage state:', { user, authLoading, company });
     // If user is already logged in, redirect to dashboard
     if (user && !authLoading) {
       if (company) {
@@ -84,6 +85,9 @@ export function CompanySignupPage() {
       });
 
       if (companyError) throw companyError;
+
+      // Refresh company data in AuthContext
+      await refreshCompany();
 
       setShowSuccess(true);
       setLoading(false);
