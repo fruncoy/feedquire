@@ -22,6 +22,7 @@ export function AdminSubmissionsPage() {
   const [selectedSubmissions, setSelectedSubmissions] = useState<Set<string>>(new Set());
   const [bulkUpdating, setBulkUpdating] = useState(false);
   const [expandedPlatforms, setExpandedPlatforms] = useState<Set<string>>(new Set());
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchSubmissions();
@@ -29,6 +30,7 @@ export function AdminSubmissionsPage() {
 
   const fetchSubmissions = async () => {
     try {
+      setError(null);
       // Fetch all data in parallel
       const [
         submissionsResult,
@@ -43,6 +45,9 @@ export function AdminSubmissionsPage() {
       ]);
 
       if (submissionsResult.error) throw submissionsResult.error;
+      if (platformsResult.error) throw platformsResult.error;
+      if (profilesResult.error) throw profilesResult.error;
+      if (questionsResult.error) throw questionsResult.error;
 
       // Create lookup maps
       const platformsMap = new Map();
@@ -66,6 +71,7 @@ export function AdminSubmissionsPage() {
       setSubmissions(enrichedSubmissions);
     } catch (err) {
       console.error('Error fetching submissions:', err);
+      setError(err instanceof Error ? err.message : 'An unknown error occurred');
     } finally {
       setLoading(false);
     }
@@ -316,11 +322,34 @@ export function AdminSubmissionsPage() {
   return (
     <DashboardLayout>
       <div className="p-6">
-        <div className="space-y-4">
-          {Object.entries(platformGroups).map(([platformId, group]) => {
-            const isExpanded = expandedPlatforms.has(platformId);
-            const platformSubmissions = group.submissions.filter((s: any) => s.submission.status === 'submitted');
-            const selectedInPlatform = platformSubmissions.filter((s: any) => selectedSubmissions.has(s.submission.id)).length;
+        {error ? (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <div className="flex items-center gap-2 text-red-800">
+              <span className="text-lg">⚠️</span>
+              <div>
+                <h3 className="font-semibold">Error Loading Reports</h3>
+                <p className="text-sm">{error}</p>
+              </div>
+            </div>
+            <button
+              onClick={fetchSubmissions}
+              className="mt-3 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+            >
+              Retry
+            </button>
+          </div>
+        ) : submissions.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="text-gray-400 text-5xl mb-4">📊</div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">No Reports Yet</h3>
+            <p className="text-gray-600">There are no feedback submissions to review at this time.</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {Object.entries(platformGroups).map(([platformId, group]) => {
+              const isExpanded = expandedPlatforms.has(platformId);
+              const platformSubmissions = group.submissions.filter((s: any) => s.submission.status === 'submitted');
+              const selectedInPlatform = platformSubmissions.filter((s: any) => selectedSubmissions.has(s.submission.id)).length;
             
             return (
               <div key={platformId} className="bg-white border border-gray-200 rounded-lg">
@@ -454,7 +483,8 @@ export function AdminSubmissionsPage() {
               </div>
             );
           })}
-        </div>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );

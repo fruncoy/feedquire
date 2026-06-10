@@ -2,7 +2,7 @@ import { ReactNode, useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { usePermissions } from '../hooks/usePermissions';
-import { LogOut, Home, CheckSquare, FileText, User, CreditCard, Users, Package, ClipboardList, Crown, Trash2, MessageSquare, Ticket } from 'lucide-react';
+import { LogOut, Home, CheckSquare, FileText, User, CreditCard, Users, Package, ClipboardList, Crown, Trash2, MessageSquare, Ticket, Building2 } from 'lucide-react';
 import { Logo } from './Logo';
 import { HelpButton } from './HelpButton';
 
@@ -18,6 +18,17 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const { features } = usePermissions();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileExpanded, setMobileExpanded] = useState(false);
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      navigate('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Fallback navigation if sign out fails
+      navigate('/');
+    }
+  };
 
   // Show loading spinner if auth is still loading
   if (authLoading) {
@@ -36,17 +47,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       </div>
     );
   }
-
-  const handleLogout = async () => {
-    try {
-      await signOut();
-      navigate('/');
-    } catch (error) {
-      console.error('Logout error:', error);
-      // Fallback navigation if sign out fails
-      navigate('/');
-    }
-  };
   
 
 
@@ -56,6 +56,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const menuItems = isAdminRoute ? [
     { path: '/control', icon: Home, label: 'Control' },
     { path: '/control/accounts', icon: Users, label: 'Accounts' },
+    { path: '/control/companies', icon: Building2, label: 'Companies' },
     { path: '/control/systems', icon: Package, label: 'Systems' },
     { path: '/control/reports', icon: ClipboardList, label: 'Reports' },
     { path: '/control/tickets', icon: MessageSquare, label: 'Tickets' },
@@ -182,7 +183,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 </p>
                 <div className="w-8 h-8 bg-gray-900 rounded-full flex items-center justify-center">
                   <span className="text-white text-sm font-medium">
-                    {(company?.company_name?.charAt(0) || profile?.full_name?.charAt(0)).toUpperCase()}
+                    {(company?.company_name?.charAt(0) || profile?.full_name?.charAt(0) || 'U').toUpperCase()}
                   </span>
                 </div>
               </div>
