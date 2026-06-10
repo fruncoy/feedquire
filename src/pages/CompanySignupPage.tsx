@@ -17,7 +17,18 @@ export function CompanySignupPage() {
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const navigate = useNavigate();
-  const { loading: authLoading } = useAuth();
+  const { user, loading: authLoading, company } = useAuth();
+
+  useEffect(() => {
+    // If user is already logged in, redirect to dashboard
+    if (user && !authLoading) {
+      if (company) {
+        navigate('/company/dashboard');
+      } else {
+        navigate('/dashboard');
+      }
+    }
+  }, [user, authLoading, company, navigate]);
 
   useEffect(() => {
     if (showSuccess && !authLoading) {

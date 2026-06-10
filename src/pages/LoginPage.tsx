@@ -14,7 +14,22 @@ export function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [loginSuccess, setLoginSuccess] = useState(false);
   const navigate = useNavigate();
-  const { signIn, loading: authLoading } = useAuth();
+  const { signIn, loading: authLoading, user, company, profile } = useAuth();
+
+  useEffect(() => {
+    // If user is already logged in, redirect to dashboard
+    if (user && !authLoading) {
+      if (company) {
+        navigate('/company/dashboard');
+      } else if (profile) {
+        if (profile.role === 'system_operator') {
+          navigate('/control');
+        } else {
+          navigate('/dashboard');
+        }
+      }
+    }
+  }, [user, authLoading, company, profile, navigate]);
 
   useEffect(() => {
     console.log('LoginPage - loginSuccess:', loginSuccess, 'authLoading:', authLoading);

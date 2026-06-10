@@ -13,7 +13,18 @@ export function CompanyLoginPage() {
   const [loading, setLoading] = useState(false);
   const [loginSuccess, setLoginSuccess] = useState(false);
   const navigate = useNavigate();
-  const { signIn, loading: authLoading } = useAuth();
+  const { signIn, loading: authLoading, user, company } = useAuth();
+
+  useEffect(() => {
+    // If user is already logged in, redirect to dashboard
+    if (user && !authLoading) {
+      if (company) {
+        navigate('/company/dashboard');
+      } else {
+        navigate('/dashboard');
+      }
+    }
+  }, [user, authLoading, company, navigate]);
 
   useEffect(() => {
     if (loginSuccess && !authLoading) {

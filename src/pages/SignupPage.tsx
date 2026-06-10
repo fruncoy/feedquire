@@ -17,7 +17,22 @@ export function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const navigate = useNavigate();
-  const { signUp, loading: authLoading } = useAuth();
+  const { signUp, loading: authLoading, user, company, profile } = useAuth();
+
+  useEffect(() => {
+    // If user is already logged in, redirect to dashboard
+    if (user && !authLoading) {
+      if (company) {
+        navigate('/company/dashboard');
+      } else if (profile) {
+        if (profile.role === 'system_operator') {
+          navigate('/control');
+        } else {
+          navigate('/dashboard');
+        }
+      }
+    }
+  }, [user, authLoading, company, profile, navigate]);
 
   useEffect(() => {
     if (showSuccess && !authLoading) {
