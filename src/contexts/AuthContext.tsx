@@ -25,6 +25,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [company, setCompany] = useState<Company | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isSigningOut, setIsSigningOut] = useState(false);
 
   console.log('AuthContext - Current state:', { user, profile, company, loading });
 
@@ -42,7 +43,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (error || !data) {
         console.log('AuthContext - no profile found or error, signing out user');
-        await signOut();
+        setLoading(false);
+        if (!isSigningOut) {
+          await signOut();
+        }
         return;
       }
 
@@ -50,7 +54,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setProfile(data as Profile);
     } catch (error) {
       console.error('AuthContext - fetchProfile error (catch block):', error);
-      await signOut();
+      setLoading(false);
+      if (!isSigningOut) {
+        await signOut();
+      }
     }
   }
 
@@ -212,8 +219,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
+    if (isSigningOut) {
+      console.log('AuthContext - already signing out, skipping');
+      return;
+    }
+
     try {
       console.log('AuthContext - signing out user');
+      setIsSigningOut(true);
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
 
@@ -227,6 +240,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error('AuthContext - signOut error:', error);
       throw error;
+    } finally {
+      setIsSigningOut(false);
     }
   };
 
