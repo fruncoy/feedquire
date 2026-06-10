@@ -18,7 +18,7 @@ serve(async (req) => {
     const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
     const { data, error } = await resend.emails.send({
-      from: "Feedquire <onboarding@resend.dev>",
+      from: "Feedquire <notifications@feedquire.com>",
       to: [to],
       subject: "Welcome to Feedquire!",
       html: `
